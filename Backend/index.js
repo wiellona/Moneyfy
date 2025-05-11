@@ -1,0 +1,21 @@
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
+
+const corsOptions = {
+  origin: [process.env.FRONTEND_URL, "localhost:3000"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+};
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+app.use(cors(corsOptions));
+app.use(express.json());
+
+// tambahin aja routes lu disini ya wielsss
+// app.use("/user", require("./src/routes/user.route"));
+
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
