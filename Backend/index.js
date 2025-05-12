@@ -13,8 +13,9 @@ const port = process.env.PORT || 3000;
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// tambahin aja routes lu disini ya wielsss
+// Routes
 app.use("/user", require("./src/routes/user.route"));
+app.use("/account", require("./src/routes/account.route"));
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

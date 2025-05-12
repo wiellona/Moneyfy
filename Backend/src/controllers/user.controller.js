@@ -6,6 +6,18 @@ const saltRounds = 10;
 const emailRegex = /\S+@\S+\.\S+/;
 const passwordRegex = /^(?=.*\d)(?=.*[\W_]).{8,}$/;
 
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await userRepository.getAllUsers();
+    if (!users) {
+      return baseResponse(res, false, 404, "No users found", null);
+    }
+    return baseResponse(res, true, 200, "Users found", users);
+  } catch (error) {
+    return baseResponse(res, false, 500, "Error getting users", error);
+  }
+};
+
 exports.userRegister = async (req, res) => {
   if (!emailRegex.test(req.query.email)) {
     return baseResponse(
@@ -51,7 +63,7 @@ exports.userRegister = async (req, res) => {
     };
 
     const user = await userRepository.userRegister(userData);
-    console.log(user);  
+    console.log(user);
     return baseResponse(res, true, 201, "User registered", user);
   } catch (error) {
     return baseResponse(res, false, 500, "Error registering user", error);

@@ -25,6 +25,15 @@ exports.userLogin = async (user) => {
   }
 };
 
+exports.getAllUsers = async () => {
+  try {
+    const res = await db.query("SELECT * FROM users");
+    return res.rows;
+  } catch (error) {
+    console.error("Error executing query", error);
+  }
+};
+
 exports.getUserByEmail = async (email) => {
   try {
     const res = await db.query("SELECT * FROM users WHERE email = $1", [email]);
