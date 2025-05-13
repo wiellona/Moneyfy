@@ -41,10 +41,6 @@ exports.userRegister = async (req, res) => {
   if (user) {
     return baseResponse(res, false, 400, "Email already exists", null);
   }
-  const userName = await userRepository.getUserByUsername(req.query.name);
-  if (userName) {
-    return baseResponse(res, false, 400, "Username already exists", null);
-  }
 
   if (!req.query.name || !req.query.email || !req.query.password) {
     return baseResponse(
