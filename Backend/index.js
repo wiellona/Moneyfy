@@ -16,6 +16,7 @@ app.use(express.json());
 // Routes
 app.use("/user", require("./src/routes/user.route"));
 app.use("/account", require("./src/routes/account.route"));
+app.use("/saving-goals", require("./src/routes/saving_goals.route"));
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
