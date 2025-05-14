@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ChevronRight, Calendar, ArrowLeft } from "lucide-react";
-import Headers from "./Header";
-import Footer from "./Footer";
+import Headers from "./Components/Header";
+import Footer from "./Components/Footer";
 
 const SetBudget = () => {
   const [amount, setAmount] = useState("");

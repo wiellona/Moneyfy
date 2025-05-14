@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import './LoginPageStyle.jsx'; // Mengimpor file styling
-import Header from './Header.jsx';
-import Footer from './Footer.jsx';
+import Header from './Components/Header.jsx';
+
 import './LoginPageStyle.jsx';
 import LoginPageStyle from './LoginPageStyle.jsx';
+import Footer from './Components/Footer.jsx';
  
 const LoginPage = () => {
   // State untuk menangani tampilan modal register
@@ -164,7 +165,7 @@ const LoginPage = () => {
         </div>
       )}
     </div>
-    <Footer /> {/* Menampilkan Footer */}
+    <Footer/> {/* Menampilkan Footer */}
     <LoginPageStyle />
     </div>
     

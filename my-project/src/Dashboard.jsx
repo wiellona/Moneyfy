@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom"; // Add this import
 import { BarChart, Bar, XAxis, ResponsiveContainer } from "recharts";
 import { ChevronLeft, ChevronRight, Eye, ArrowUp, ArrowDown } from "lucide-react";
-
+import Footer from "./Components/Footer";
+import Header from "./Components/Header";
 
 const Dashboard = () => {
   const navigate = useNavigate(); // Add this hook
@@ -59,8 +60,9 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-purple-100">
+      <Header/>
       {/* Header/Navbar */}
-      <header className="px-8 py-4 flex justify-between items-center">
+      {/* <header className="px-8 py-4 flex justify-between items-center">
         <h1 className="text-xl font-bold">MoneyFy</h1>
         <div className="flex gap-6 items-center">
           <a href="#" className="text-sm">About us</a>
@@ -71,7 +73,7 @@ const Dashboard = () => {
             <button className="bg-indigo-600 text-white px-4 py-1 rounded-md text-sm">Logout</button>
           </div>
         </div>
-      </header>
+      </header> */}
 
       {/* Dashboard Content */}
       <div className="px-10 py-4">
@@ -281,7 +283,8 @@ const Dashboard = () => {
       </div>
 
       {/* Footer */}
-      <footer className="px-10 py-8 mt-8 border-t">
+      <Footer/>
+      {/* <footer className="px-10 py-8 mt-8 border-t">
         <div className="grid grid-cols-4 gap-6 mb-6">
           <div>
             <h5 className="font-bold mb-2">MoneyFy</h5>
@@ -320,7 +323,7 @@ const Dashboard = () => {
             <a href="#">Instagram</a>
           </div>
         </div>
-      </footer>
+      </footer> */}
     </div>
   );
 };

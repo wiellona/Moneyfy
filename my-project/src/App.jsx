@@ -1,13 +1,11 @@
 import React from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
-import Header from './Header';  // Mengimpor Header terlebih dahulu
-import LandingPage from './LandingPage';  // Mengimpor komponen LandingPage
-import LoginPage from './LoginPage';  // Mengimpor komponen LoginPage
-import AboutMoneyFy from './AboutMoneyFy';  // Mengimpor AboutMoneyFy
-import LoginPageStyle from './LoginPageStyle';
+import { Route, Routes } from 'react-router-dom';
+import AboutMoneyFy from './AboutMoneyFy'; // Mengimpor AboutMoneyFy
 import AddTransaction from './AddTransaction';
-import BudgetPlanning from './BudgetPlanner';  // Mengimpor styling dari LoginPageStyle
+import BudgetPlanning from './BudgetPlanner'; // Mengimpor styling dari LoginPageStyle
 import Dashboard from './Dashboard';
+import LandingPage from './LandingPage'; // Mengimpor komponen LandingPage
+import LoginPage from './LoginPage'; // Mengimpor komponen LoginPage
 import SetBudget from './SetBudget';
 
 function App() {

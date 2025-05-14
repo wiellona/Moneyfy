@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import Header from './Header';
-import Footer from './Footer';
+import Header from './Components/Header';
+import Footer from './Components/Footer';
 
 export default function BudgetPlanner() {
   const [selectedMonth, setSelectedMonth] = useState('January');
