@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import HeaderTransaction from './HeaderTransaction';
-import Footer from './Footer';
+// Footer dihilangkan dari sini karena sudah ada di App.jsx
 
 const transactionsData = [
   {
@@ -124,8 +124,9 @@ const SettingsTransactions = () => {
                     </div>
                   </div>
                   <div
-                    className={`font-semibold ${t.amount >= 0 ? 'text-green-600' : 'text-red-600'
-                      }`}
+                    className={`font-semibold ${
+                      t.amount >= 0 ? 'text-green-600' : 'text-red-600'
+                    }`}
                   >
                     {t.amount >= 0 ? `+$${t.amount.toFixed(2)}` : `-$${Math.abs(t.amount).toFixed(2)}`}
                   </div>
@@ -137,23 +138,31 @@ const SettingsTransactions = () => {
           {/* Summary Panel */}
           <div className="space-y-6">
             {/* Monthly Balance */}
-            <div className="bg-white p-6 rounded-xl shadow">
-              <div className="flex items-center justify-between mb-2">
+            <div className="bg-white p-6 rounded-xl shadow flex flex-col items-start">
+              <div className="flex items-center justify-between w-full mb-2">
                 <span className="text-gray-500">Monthly Balance</span>
                 <button className="text-purple-600 underline text-sm">Edit</button>
               </div>
               <p className="text-2xl font-bold">Rp 100,000.00</p>
-              <p className="text-green-500 mt-1">+2.5%</p>
+              <div className="flex items-center gap-1 mt-1 text-green-500">
+                <span>▲</span>
+                <span>+2.5%</span>
+              </div>
             </div>
             {/* Total Balance */}
-            <div className="bg-white p-6 rounded-xl shadow text-center">
-              <p className="text-gray-500">Total Balance</p>
+            <div className="bg-white p-6 rounded-xl shadow flex flex-col items-start">
+              <div className="flex items-center justify-between w-full mb-2">
+                <span className="text-gray-500">Total Balance</span>
+              </div>
               <p className="text-2xl font-bold">Rp 125,430.82</p>
-              <p className="text-green-500 mt-1">+2.5%</p>
+              <div className="flex items-center gap-1 mt-1 text-green-500">
+                <span>▲</span>
+                <span>+2.5%</span>
+              </div>
             </div>
             {/* Savings Goal */}
-            <div className="bg-white p-6 rounded-xl shadow">
-              <div className="flex items-center justify-between mb-2">
+            <div className="bg-white p-6 rounded-xl shadow flex flex-col items-start">
+              <div className="flex items-center justify-between w-full mb-2">
                 <span className="text-gray-500">Savings Goal</span>
                 <button className="text-purple-600 underline text-sm">Edit</button>
               </div>
@@ -161,7 +170,7 @@ const SettingsTransactions = () => {
               <div className="w-full bg-gray-200 rounded-full h-3 mt-3">
                 <div className="bg-purple-600 h-3 rounded-full" style={{ width: '72%' }}></div>
               </div>
-              <div className="flex justify-between mt-2 text-gray-600 text-sm">
+              <div className="flex justify-between w-full mt-2 text-gray-600 text-sm">
                 <span>72% achieved</span>
                 <span>12 days left</span>
               </div>
@@ -172,7 +181,6 @@ const SettingsTransactions = () => {
           </div>
         </div>
       </div>
-      <Footer />
     </>
   );
 };

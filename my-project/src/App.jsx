@@ -9,8 +9,8 @@ import LandingPage from './LandingPage';
 import LoginPage from './LoginPage';
 import SetBudget from './SetBudget';
 import SettingsTransactions from './Components/SettingsTransactions';
-import Footer from './Components/Footer'; // import Footer
-import HeaderTransaction from './Components/HeaderTransaction'; 
+import SettingsBudget from './Components/SettingsBudget'; // <--- Tambahkan ini!
+import Footer from './Components/Footer';
 
 function App() {
   return (
@@ -24,6 +24,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/set-budget" element={<SetBudget />} />
         <Route path="/settings-transactions" element={<SettingsTransactions />} />
+        <Route path="/settings-budget" element={<SettingsBudget />} /> {/* <--- Ini dia */}
       </Routes>
 
       {/* Footer hanya dipanggil sekali di sini */}
