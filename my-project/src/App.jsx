@@ -1,55 +1,34 @@
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
-import AboutMoneyFy from './AboutMoneyFy'; // Mengimpor AboutMoneyFy
+
+import AboutMoneyFy from './AboutMoneyFy';
 import AddTransaction from './AddTransaction';
-import BudgetPlanning from './BudgetPlanner'; // Mengimpor styling dari LoginPageStyle
+import BudgetPlanning from './BudgetPlanner';
 import Dashboard from './Dashboard';
-import LandingPage from './LandingPage'; // Mengimpor komponen LandingPage
-import LoginPage from './LoginPage'; // Mengimpor komponen LoginPage
+import LandingPage from './LandingPage';
+import LoginPage from './LoginPage';
 import SetBudget from './SetBudget';
+import SettingsTransactions from './Components/SettingsTransactions';
+import Footer from './Components/Footer'; // import Footer
+import HeaderTransaction from './Components/HeaderTransaction'; 
 
 function App() {
   return (
     <>
-    {/* <nav classname="bg-white text-black p-4 flex gap-4" */}
-   <Routes>
-    <Route path="/" element={<LandingPage />} />
-    <Route path="/login" element={<LoginPage />} />
-    <Route path="/about" element={<AboutMoneyFy />} />
-    <Route path="/add-transaction" element={<AddTransaction />} />
-    <Route path="/budget-planning" element={<BudgetPlanning />} />
-    <Route path="/dashboard" element={<Dashboard />} />
-    <Route path="/set-budget" element={<SetBudget />} />
-   </Routes>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/about" element={<AboutMoneyFy />} />
+        <Route path="/add-transaction" element={<AddTransaction />} />
+        <Route path="/budget-planning" element={<BudgetPlanning />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/set-budget" element={<SetBudget />} />
+        <Route path="/settings-transactions" element={<SettingsTransactions />} />
+      </Routes>
+
+      {/* Footer hanya dipanggil sekali di sini */}
+      <Footer />
     </>
-        // <div className="App">
-    //   {/* Menampilkan Header terlebih dahulu */}
-    //   <Header />
-
-    //   {/* Menampilkan LoginPage setelah Header */}
-    //   <LoginPage />
-
-    //   {/* Menambahkan styling dari LoginPageStyle */}
-    //   <LoginPageStyle />
-
-    //   {/* Menampilkan Landing Page */}
-    //   <LandingPage />
-
-    //   {/* Menampilkan AboutMoneyFy setelah LandingPage */}
-    //   {/* <AboutMoneyFy /> */}
-
-    //   {/* Menampilkan Dashboard setelah BudgetPlanning */}
-    //   <Dashboard />  
-
-    //   {/* Menampilkan AddTransaction setelah AboutMoneyFy */}
-    //   <AddTransaction />
-
-    //   {/* Menampilkan BudgetPlanning setelah AddTransaction */}
-    //   <BudgetPlanning />
-
-    //   {/* Menampilkan SetBudget setelah Dashboard */}
-    //   <SetBudget />
-    // </div>
   );
 }
 
