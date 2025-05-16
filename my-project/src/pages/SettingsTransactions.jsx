@@ -1,51 +1,60 @@
-import React, { useState } from 'react';
-import HeaderTransaction from './HeaderTransaction';
+import { useState } from "react";
 // Footer dihilangkan dari sini karena sudah ada di App.jsx
 
 const transactionsData = [
   {
     id: 1,
-    type: 'Netflix Subscription',
-    date: '2024-01-15',
+    type: "Netflix Subscription",
+    date: "2024-01-15",
     amount: -14.99,
-    icon: '🎬',
+    icon: "🎬",
   },
   {
     id: 2,
-    type: 'Salary Deposit',
-    date: '2024-01-14',
+    type: "Salary Deposit",
+    date: "2024-01-14",
     amount: 3500.0,
-    icon: '💰',
+    icon: "💰",
   },
   {
     id: 3,
-    type: 'Grocery Store',
-    date: '2024-01-13',
+    type: "Grocery Store",
+    date: "2024-01-13",
     amount: -127.53,
-    icon: '🛒',
+    icon: "🛒",
   },
   {
     id: 4,
-    type: 'Freelance Payment',
-    date: '2024-01-12',
+    type: "Freelance Payment",
+    date: "2024-01-12",
     amount: 850.0,
-    icon: '💵',
+    icon: "💵",
   },
   {
     id: 5,
-    type: 'Electric Bill',
-    date: '2024-01-11',
+    type: "Electric Bill",
+    date: "2024-01-11",
     amount: -85.2,
-    icon: '⚡',
+    icon: "⚡",
   },
 ];
 
 const SettingsTransactions = () => {
   const [monthIndex, setMonthIndex] = useState(4); // May = 4 (0-based)
-  const [filter, setFilter] = useState('Transactions');
+  const [filter, setFilter] = useState("Transactions");
   const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December',
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
 
   const handlePrevMonth = () => {
@@ -62,9 +71,7 @@ const SettingsTransactions = () => {
 
   return (
     <>
-      <HeaderTransaction />
-
-      <div className="min-h-screen bg-gradient-to-b from-purple-50 via-white to-purple-100 px-4 py-10">
+      <div className="min-h-screen px-4 py-10">
         {/* TOP BAR */}
         <div className="max-w-7xl mx-auto mb-6 flex flex-col items-center">
           <div className="w-full flex justify-between items-center mb-2">
@@ -73,7 +80,7 @@ const SettingsTransactions = () => {
               <select
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                className="bg-white rounded-xl shadow px-4 py-2 border text-purple-700 font-medium focus:outline-none"
+                className="bg-white rounded-xl shadow px-4 py-2 border text-indigo-700 font-medium focus:outline-none"
               >
                 <option>Transactions</option>
                 <option>Income</option>
@@ -86,19 +93,25 @@ const SettingsTransactions = () => {
               <h1 className="text-3xl font-bold text-center">Settings</h1>
             </div>
             {/* Kosongkan kanan untuk center */}
-            <div style={{ width: '160px' }}></div>
+            <div style={{ width: "160px" }}></div>
           </div>
           {/* Month navigation */}
           <div className="flex items-center gap-4 mt-2">
             <button
               onClick={handlePrevMonth}
               className="text-xl px-4 py-2 rounded border hover:bg-gray-100"
-            >&lt;</button>
-            <span className="text-2xl font-semibold">{monthNames[monthIndex]}</span>
+            >
+              &lt;
+            </button>
+            <span className="text-2xl font-semibold">
+              {monthNames[monthIndex]}
+            </span>
             <button
               onClick={handleNextMonth}
               className="text-xl px-4 py-2 rounded border hover:bg-gray-100"
-            >&gt;</button>
+            >
+              &gt;
+            </button>
           </div>
         </div>
 
@@ -107,7 +120,9 @@ const SettingsTransactions = () => {
           {/* Transactions List */}
           <div className="md:col-span-2 bg-white p-6 rounded-xl shadow">
             {filteredTransactions.length === 0 ? (
-              <p className="text-gray-500 text-center">No transactions this month.</p>
+              <p className="text-gray-500 text-center">
+                No transactions this month.
+              </p>
             ) : (
               filteredTransactions.map((t) => (
                 <div
@@ -115,7 +130,7 @@ const SettingsTransactions = () => {
                   className="flex justify-between items-center py-4 border-b last:border-none"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 flex items-center justify-center rounded-full bg-purple-600 text-white text-lg">
+                    <div className="w-10 h-10 flex items-center justify-center rounded-full bg-indigo-600 text-white text-lg">
                       {t.icon}
                     </div>
                     <div>
@@ -125,10 +140,12 @@ const SettingsTransactions = () => {
                   </div>
                   <div
                     className={`font-semibold ${
-                      t.amount >= 0 ? 'text-green-600' : 'text-red-600'
+                      t.amount >= 0 ? "text-green-600" : "text-red-600"
                     }`}
                   >
-                    {t.amount >= 0 ? `+$${t.amount.toFixed(2)}` : `-$${Math.abs(t.amount).toFixed(2)}`}
+                    {t.amount >= 0
+                      ? `+$${t.amount.toFixed(2)}`
+                      : `-$${Math.abs(t.amount).toFixed(2)}`}
                   </div>
                 </div>
               ))
@@ -141,7 +158,9 @@ const SettingsTransactions = () => {
             <div className="bg-white p-6 rounded-xl shadow flex flex-col items-start">
               <div className="flex items-center justify-between w-full mb-2">
                 <span className="text-gray-500">Monthly Balance</span>
-                <button className="text-purple-600 underline text-sm">Edit</button>
+                <button className="text-indigo-600 underline text-sm">
+                  Edit
+                </button>
               </div>
               <p className="text-2xl font-bold">Rp 100,000.00</p>
               <div className="flex items-center gap-1 mt-1 text-green-500">
@@ -164,17 +183,22 @@ const SettingsTransactions = () => {
             <div className="bg-white p-6 rounded-xl shadow flex flex-col items-start">
               <div className="flex items-center justify-between w-full mb-2">
                 <span className="text-gray-500">Savings Goal</span>
-                <button className="text-purple-600 underline text-sm">Edit</button>
+                <button className="text-indigo-600 underline text-sm">
+                  Edit
+                </button>
               </div>
               <p className="text-3xl font-bold">$35000.00</p>
               <div className="w-full bg-gray-200 rounded-full h-3 mt-3">
-                <div className="bg-purple-600 h-3 rounded-full" style={{ width: '72%' }}></div>
+                <div
+                  className="bg-indigo-600 h-3 rounded-full"
+                  style={{ width: "72%" }}
+                ></div>
               </div>
               <div className="flex justify-between w-full mt-2 text-gray-600 text-sm">
                 <span>72% achieved</span>
                 <span>12 days left</span>
               </div>
-              <button className="bg-purple-600 text-white px-4 py-2 rounded mt-4 w-full hover:bg-purple-700">
+              <button className="bg-indigo-600 text-white px-4 py-2 rounded mt-4 w-full hover:bg-indigo-700">
                 Claim Savings
               </button>
             </div>
