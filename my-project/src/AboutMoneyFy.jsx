@@ -1,5 +1,6 @@
 import React from 'react';
 
+
 const AboutMoneyFy = () => {
   return (
     <div className="about-container bg-gradient-to-br from-purple-400 via-indigo-500 to-purple-700 text-white py-20">

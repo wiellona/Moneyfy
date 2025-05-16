@@ -17,11 +17,11 @@ const Header = () => {
 
         {/* Navigation Links */}
         <nav className="space-x-6">
-          <a href="#" className="text-gray-700 hover:text-purple-600">About us</a>
-          <a href="#" className="text-gray-700 hover:text-purple-600">Our Features</a>
-          <a href="#" className="text-gray-700 hover:text-purple-600">Contact Us</a>
-          <a href="#" className="text-white bg-purple-600 px-4 py-2 rounded hover:bg-purple-700">Register</a>
-          <a href="#" className="text-white bg-purple-600 px-4 py-2 rounded hover:bg-purple-700">Login</a>
+          <a href="/#about" className="text-gray-700 hover:text-purple-600">About us</a>
+          <a href="/" className="text-gray-700 hover:text-purple-600">Our Features</a>
+          <a href="#footer" className="text-gray-700 hover:text-purple-600">Contact Us</a>
+          <a href="/login" className="text-white bg-purple-600 px-4 py-2 rounded hover:bg-purple-700">Register</a>
+          <a href="/login" className="text-white bg-purple-600 px-4 py-2 rounded hover:bg-purple-700">Login</a>
         </nav>
       </div>
 

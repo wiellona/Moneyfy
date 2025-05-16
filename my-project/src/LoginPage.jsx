@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import './LoginPageStyle.jsx'; // Mengimpor file styling
+import Header from './Components/Header.jsx';
 
+import './LoginPageStyle.jsx';
+import LoginPageStyle from './LoginPageStyle.jsx';
+import Footer from './Components/Footer.jsx';
+ 
 const LoginPage = () => {
   // State untuk menangani tampilan modal register
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
@@ -16,6 +21,8 @@ const LoginPage = () => {
   };
 
   return (
+    <div>
+      <Header /> {/* Menampilkan Header */}
     <div className="login-container">
       <div className="form-container">
         {/* Teks Judul */}
@@ -158,7 +165,12 @@ const LoginPage = () => {
         </div>
       )}
     </div>
+    <Footer/> {/* Menampilkan Footer */}
+    <LoginPageStyle />
+    </div>
+    
   );
 };
+
 
 export default LoginPage;
