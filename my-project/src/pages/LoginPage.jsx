@@ -1,7 +1,77 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
+import { UserContext } from "../context/AuthContext";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const LoginPage = () => {
-  const [activeTab, setActiveTab] = useState("login"); // "login" atau "register"
+  const [activeTab, setActiveTab] = useState("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const { login } = useContext(UserContext);
+  const navigate = useNavigate();
+
+  const handleTabChange = (tab) => {
+    setPassword("");
+    setEmail("");
+    setActiveTab(tab);
+  };
+
+  const handleLogin = async (e) => {
+    if (e) e.preventDefault();
+    console.log({ email, password });
+    toast.loading("Logging in...");
+    try {
+      const response = await axios.post(
+        `${
+          import.meta.env.VITE_API_URL
+        }/user/login?email=${email}&password=${password}`
+      );
+      if (response.status !== 200) throw new Error("Login failed");
+      console.log(response.data);
+      toast.dismiss();
+      toast.success("Login successful");
+
+      login(response.data.payload);
+      navigate("/dashboard", { state: { userData: response.data } });
+    } catch (error) {
+      console.error(error);
+      toast.dismiss();
+      toast.error("Login failed. Please try again.");
+    } finally {
+      // Add a delay of 2 seconds before dismissing the toast
+      setTimeout(() => {
+        toast.dismiss();
+      }, 3000);
+    }
+  };
+
+  const handleRegister = async (e) => {
+    if (e) e.preventDefault();
+    console.log({ name, email, password });
+    toast.loading("Registering...");
+    try {
+      const response = await axios.post(
+        `${
+          import.meta.env.VITE_API_URL
+        }/user/register?email=${email}&password=${password}&name=${name}`
+      );
+
+      console.log(response);
+      toast.dismiss();
+      toast.success("Registration successful, please login");
+      setActiveTab("login");
+    } catch (error) {
+      console.error(error);
+      toast.dismiss();
+      toast.error("Registration failed. Please try again.");
+    } finally {
+      setTimeout(() => {
+        toast.dismiss();
+      }, 3000);
+    }
+  };
 
   return (
     <div className="min-h-screen flex justify-center items-center p-4">
@@ -21,7 +91,7 @@ const LoginPage = () => {
                 ? "bg-indigo-600 text-white"
                 : "text-gray-500 hover:bg-gray-200"
             }`}
-            onClick={() => setActiveTab("login")}
+            onClick={() => handleTabChange("login")}
           >
             Login
           </button>
@@ -31,7 +101,7 @@ const LoginPage = () => {
                 ? "bg-indigo-600 text-white"
                 : "text-gray-500 hover:bg-gray-200"
             }`}
-            onClick={() => setActiveTab("register")}
+            onClick={() => handleTabChange("register")}
           >
             Register
           </button>
@@ -39,7 +109,7 @@ const LoginPage = () => {
 
         {/* Content Form */}
         {activeTab === "login" && (
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={handleLogin}>
             <div>
               <label
                 htmlFor="email"
@@ -49,9 +119,12 @@ const LoginPage = () => {
               </label>
               <input
                 id="email"
+                required
                 type="email"
                 placeholder="Enter your email"
                 className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div>
@@ -63,9 +136,12 @@ const LoginPage = () => {
               </label>
               <input
                 id="password"
+                required
                 type="password"
                 placeholder="Enter your password"
                 className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
             </div>
             <div className="text-right">
@@ -91,7 +167,7 @@ const LoginPage = () => {
               Looks like you are the first one here, create an account below to
               start using MoneyFy
             </p>
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={handleRegister}>
               <div>
                 <label
                   htmlFor="name"
@@ -102,8 +178,11 @@ const LoginPage = () => {
                 <input
                   id="name"
                   type="text"
+                  required
                   placeholder="Enter your name"
                   className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                 />
               </div>
               <div>
@@ -116,8 +195,11 @@ const LoginPage = () => {
                 <input
                   id="new-email"
                   type="email"
+                  required
                   placeholder="Enter your email"
                   className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
               <div>
@@ -130,8 +212,11 @@ const LoginPage = () => {
                 <input
                   id="new-password"
                   type="password"
+                  required
                   placeholder="Enter your password"
                   className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
               <button
@@ -147,10 +232,10 @@ const LoginPage = () => {
         <div className="text-center text-gray-500 text-sm mt-6">
           {activeTab === "login" ? (
             <>
-              Don’t have an account?{" "}
+              Don't have an account?{" "}
               <button
                 className="text-indigo-800 hover:underline"
-                onClick={() => setActiveTab("register")}
+                onClick={() => handleTabChange("register")}
               >
                 Sign up
               </button>
@@ -160,7 +245,7 @@ const LoginPage = () => {
               Already have an account?{" "}
               <button
                 className="text-indigo-600 hover:underline"
-                onClick={() => setActiveTab("login")}
+                onClick={() => handleTabChange("login")}
               >
                 Log in
               </button>

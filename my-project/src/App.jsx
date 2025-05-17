@@ -11,12 +11,23 @@ import LoginPage from "./pages/LoginPage";
 import SetBudget from "./pages/SetBudget";
 import Header from "./Components/Header";
 import SettingsBudget from "./pages/SettingsBudget";
+import { UserContext, UserProvider } from "./context/AuthContext";
+import { useContext } from "react";
 
 function App() {
   return (
+    <UserProvider>
+      <AppContent />
+    </UserProvider>
+  );
+}
+
+function AppContent() {
+  const { user } = useContext(UserContext);
+  return (
     <>
       <div className="bg-gradient-to-br from-white to-purple-200">
-        <Header />
+        <Header user={user} />
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
