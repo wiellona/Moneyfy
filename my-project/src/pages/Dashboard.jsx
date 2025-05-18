@@ -1,9 +1,9 @@
 import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight } from "lucide-react";
-import { useNavigate } from "react-router-dom"; // Add this import
+import { useNavigate } from "react-router-dom";
 import { Bar, BarChart, ResponsiveContainer, XAxis } from "recharts";
 
-const Dashboard = () => {
-  const navigate = useNavigate(); // Add this hook
+const Dashboard = ({ user }) => {
+  const navigate = useNavigate();
   // Sample data for chart
   const chartData = [
     { name: "Jan", income: 2500, expenses: 2000 },
@@ -106,15 +106,15 @@ const Dashboard = () => {
   return (
     <div className="">
       {/* Dashboard Content */}
-      <div className="px-10 py-4">
-        <h2 className="text-2xl font-bold mb-3">Dashboard</h2>
+      <div className="px-4 sm:px-6 md:px-10 py-4">
+        <h2 className="text-xl sm:text-2xl font-bold mb-3">Dashboard</h2>
 
         {/* Greeting */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3 sm:gap-0">
           <h3 className="text-lg">
-            Hello, User! <span>👋</span>
+            Hello, {user.name}! <span>👋</span>
           </h3>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <div className="flex items-center gap-1">
               <button className="flex items-center gap-2 bg-white px-2 py-2 rounded text-indigo-700">
                 <span className="text-sm text-indigo-700">This Week</span>
@@ -132,7 +132,7 @@ const Dashboard = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {/* Total Balance */}
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <p className="text-xs text-gray-500 mb-1">Total Balance</p>
@@ -183,12 +183,12 @@ const Dashboard = () => {
         </div>
 
         {/* Charts and Analytics */}
-        <div className="grid grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Income vs Expenses Chart */}
           <div className="bg-white p-4 rounded-lg shadow-sm">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2 sm:gap-0">
               <h4 className="font-medium">Income vs Expenses</h4>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 flex-wrap">
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
                   <span className="text-xs">Income</span>
@@ -266,7 +266,7 @@ const Dashboard = () => {
         </div>
 
         {/* Recent Transactions & Budget Overview */}
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Recent Transactions */}
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <div className="flex justify-between items-center mb-4">
@@ -286,7 +286,9 @@ const Dashboard = () => {
                       {transaction.icon}
                     </div>
                     <div>
-                      <p className="text-sm font-medium">{transaction.name}</p>
+                      <p className="text-sm font-medium truncate max-w-[150px] sm:max-w-none">
+                        {transaction.name}
+                      </p>
                       <p className="text-xs text-gray-500">
                         {transaction.date}
                       </p>
@@ -319,12 +321,12 @@ const Dashboard = () => {
                   key={budget.id}
                   className="flex items-center justify-between"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm">
+                  <div className="flex items-center gap-3 w-full">
+                    <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm flex-shrink-0">
                       {budget.category.charAt(0)}
                     </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between flex-wrap gap-1">
                         <p className="text-sm font-medium">{budget.category}</p>
                         <p className="text-xs">
                           Remaining: Rp {formatCurrency(budget.remaining)}
@@ -342,20 +344,20 @@ const Dashboard = () => {
                           ></div>
                         </div>
                       </div>
-                      <div className="flex justify-between mt-1">
-                        <p className="text-xs text-gray-500">
+                      <div className="flex justify-between mt-1 flex-wrap text-xs text-gray-500 gap-1">
+                        <p>
                           {budget.percentage <= 0
                             ? "No budget left!"
                             : `${budget.percentage}% left`}
                         </p>
-                        <p className="text-xs text-gray-500">
-                          Rp {formatCurrency(budget.remaining)}/Rp{" "}
+                        <p className="whitespace-nowrap">
+                          Rp {formatCurrency(budget.remaining)}/
                           {formatCurrency(budget.total)}
                         </p>
                       </div>
                     </div>
                   </div>
-                  <button className="ml-2">
+                  <button className="ml-2 flex-shrink-0">
                     <ChevronRight size={20} className="text-gray-400" />
                   </button>
                 </div>
