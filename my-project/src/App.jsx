@@ -33,7 +33,7 @@ function AppContent() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/add-transaction" element={<AddTransaction />} />
           <Route path="/budget-planning" element={<BudgetPlanning />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard user={user} />} />
           <Route path="/set-budget" element={<SetBudget />} />
           <Route
             path="/settings-transactions"

@@ -38,7 +38,8 @@ const LoginPage = () => {
     } catch (error) {
       console.error(error);
       toast.dismiss();
-      toast.error("Login failed. Please try again.");
+      // toast.error("Login failed. Please try again.");
+      toast.error(error?.response?.data?.message);
     } finally {
       // Add a delay of 2 seconds before dismissing the toast
       setTimeout(() => {
@@ -65,7 +66,8 @@ const LoginPage = () => {
     } catch (error) {
       console.error(error);
       toast.dismiss();
-      toast.error("Registration failed. Please try again.");
+      // toast.error("Registration failed. Please try again.\n");
+      toast.error(error?.response?.data?.message);
     } finally {
       setTimeout(() => {
         toast.dismiss();

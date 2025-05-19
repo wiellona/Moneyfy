@@ -187,23 +187,32 @@ const deleteTransaction = async (transactionId) => {
 
 // Get summary data (for dashboard)
 const getTransactionSummary = async (userId, period = "month") => {
-  let dateFilter;
+  let dateFilter, prevDateFilter;
 
   switch (period) {
     case "week":
       dateFilter = "date >= CURRENT_DATE - INTERVAL '7 days'";
+      prevDateFilter =
+        "date >= CURRENT_DATE - INTERVAL '14 days' AND date < CURRENT_DATE - INTERVAL '7 days'";
       break;
     case "month":
       dateFilter = "date >= DATE_TRUNC('month', CURRENT_DATE)";
+      prevDateFilter =
+        "date >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month') AND date < DATE_TRUNC('month', CURRENT_DATE)";
       break;
     case "year":
       dateFilter = "date >= DATE_TRUNC('year', CURRENT_DATE)";
+      prevDateFilter =
+        "date >= DATE_TRUNC('year', CURRENT_DATE - INTERVAL '1 year') AND date < DATE_TRUNC('year', CURRENT_DATE)";
       break;
     default:
       dateFilter = "date >= DATE_TRUNC('month', CURRENT_DATE)";
+      prevDateFilter =
+        "date >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month') AND date < DATE_TRUNC('month', CURRENT_DATE)";
   }
 
-  const result = await query(
+  // Get current period data
+  const currentResult = await query(
     `SELECT 
        SUM(CASE WHEN transaction_type = 'income' THEN amount ELSE 0 END) as total_income,
        SUM(CASE WHEN transaction_type = 'expense' THEN amount ELSE 0 END) as total_expense,
@@ -213,7 +222,43 @@ const getTransactionSummary = async (userId, period = "month") => {
     [userId]
   );
 
-  return result.rows[0];
+  // Get previous period data
+  const prevResult = await query(
+    `SELECT 
+       SUM(CASE WHEN transaction_type = 'income' THEN amount ELSE 0 END) as total_income,
+       SUM(CASE WHEN transaction_type = 'expense' THEN amount ELSE 0 END) as total_expense,
+       SUM(CASE WHEN transaction_type = 'saving' THEN amount ELSE 0 END) as total_saving
+     FROM transactions
+     WHERE user_id = $1 AND ${prevDateFilter}`,
+    [userId]
+  );
+
+  const current = currentResult.rows[0];
+  const prev = prevResult.rows[0];
+
+  // Calculate percentage changes
+  const calculatePercentage = (current, previous) => {
+    if (!previous || previous === 0) return null;
+    return ((current - previous) / previous) * 100;
+  };
+
+  return {
+    total_income: current.total_income || 0,
+    total_expense: current.total_expense || 0,
+    total_saving: current.total_saving || 0,
+    income_percentage_change: calculatePercentage(
+      Number(current.total_income) || 0,
+      Number(prev.total_income) || 0
+    ),
+    expense_percentage_change: calculatePercentage(
+      Number(current.total_expense) || 0,
+      Number(prev.total_expense) || 0
+    ),
+    saving_percentage_change: calculatePercentage(
+      Number(current.total_saving) || 0,
+      Number(prev.total_saving) || 0
+    ),
+  };
 };
 
 // Get transactions by month and year
@@ -240,6 +285,34 @@ const getTransactionsByMonth = async (userId, month, year, type = null) => {
   return result.rows;
 };
 
+const getIncomeVsExpenses = async (userId, year = new Date().getFullYear()) => {
+  try {
+    const result = await query(
+      `WITH months AS (
+        SELECT generate_series(1, 12) AS month_number
+      )
+      SELECT 
+        TO_CHAR(TO_DATE(m.month_number::text, 'MM'), 'Mon') AS month_name,
+        m.month_number,
+        COALESCE(SUM(CASE WHEN t.transaction_type = 'income' THEN t.amount ELSE 0 END), 0) AS income,
+        COALESCE(SUM(CASE WHEN t.transaction_type = 'expense' THEN t.amount ELSE 0 END), 0) AS expense
+      FROM months m
+      LEFT JOIN transactions t ON 
+        t.user_id = $1 AND
+        EXTRACT(MONTH FROM t.date) = m.month_number AND
+        EXTRACT(YEAR FROM t.date) = $2
+      GROUP BY m.month_number, month_name
+      ORDER BY m.month_number ASC`,
+      [userId, year]
+    );
+
+    return result.rows;
+  } catch (error) {
+    console.error("Error getting income vs expenses:", error);
+    throw error;
+  }
+};
+
 module.exports = {
   getAllTransactions,
   getTransactionById,
@@ -250,4 +323,5 @@ module.exports = {
   deleteTransaction,
   getTransactionSummary,
   getTransactionsByMonth,
+  getIncomeVsExpenses,
 };

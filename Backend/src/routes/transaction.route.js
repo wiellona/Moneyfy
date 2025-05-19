@@ -29,4 +29,10 @@ router.put("/:id", transactionController.updateTransaction);
 // DELETE transaction
 router.delete("/:id", transactionController.deleteTransaction);
 
+// GET income vs expenses data for a user
+router.get(
+  "/income-vs-expenses/:userId",
+  transactionController.getIncomeVsExpenses
+);
+
 module.exports = router;
