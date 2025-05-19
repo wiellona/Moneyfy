@@ -1,4 +1,9 @@
 import React, { useState } from "react";
+import MonthlyBalanceCard from "./settings/monthlyBalanceCard";
+import TotalBalanceCard from "./settings/totalBalanceCard";
+import SavingsGoalCard from "./settings/savingsGoalCard";
+import SetBalanceModal from "./settings/SetBalanceModal";
+import SetSavingsGoalModal from "./settings/SetSavingsGoalModal";
 
 const budgetsData = [
   {
@@ -11,30 +16,6 @@ const budgetsData = [
   },
   {
     id: 2,
-    name: "Game",
-    remaining: 50000,
-    total: 100000,
-    spent: 0.5,
-    icon: "🎮",
-  },
-  {
-    id: 3,
-    name: "Game",
-    remaining: 50000,
-    total: 100000,
-    spent: 0.5,
-    icon: "🎮",
-  },
-  {
-    id: 4,
-    name: "Game",
-    remaining: 50000,
-    total: 100000,
-    spent: 0.5,
-    icon: "🎮",
-  },
-  {
-    id: 5,
     name: "Game",
     remaining: 50000,
     total: 100000,
@@ -61,15 +42,41 @@ const monthNames = [
 const SettingsBudget = () => {
   const [monthIndex, setMonthIndex] = useState(4); // May
   const [filter, setFilter] = useState("Budget");
+  const [isBalanceModalOpen, setIsBalanceModalOpen] = useState(false);
+  const [currentBalance, setCurrentBalance] = useState(100000); // contoh, bisa diganti sesuai data
+  const [isSavingsGoalModalOpen, setIsSavingsGoalModalOpen] = useState(false);
+  const [savingsGoal, setSavingsGoal] = useState(150000);
+  const [savingsProgress, setSavingsProgress] = useState(72); // dalam persen
+  const [savingsDaysLeft, setSavingsDaysLeft] = useState(12);
+  const [totalBalance, setTotalBalance] = useState(25430.82); // contoh, bisa diganti sesuai data
 
   const handlePrevMonth = () =>
     setMonthIndex((prev) => (prev === 0 ? 11 : prev - 1));
   const handleNextMonth = () =>
     setMonthIndex((prev) => (prev === 11 ? 0 : prev + 1));
+  const handleOpenBalanceModal = () => setIsBalanceModalOpen(true);
+  const handleCloseBalanceModal = () => setIsBalanceModalOpen(false);
+  const handleSaveBalance = (newBalance) => {
+    setCurrentBalance(Number(newBalance));
+    setIsBalanceModalOpen(false);
+  };
+  const handleOpenSavingsGoalModal = () => setIsSavingsGoalModalOpen(true);
+  const handleCloseSavingsGoalModal = () => setIsSavingsGoalModalOpen(false);
+  const handleSaveSavingsGoal = ({ targetAmount }) => {
+    setSavingsGoal(Number(targetAmount));
+    setIsSavingsGoalModalOpen(false);
+    // Reset progress jika goal baru
+    setSavingsProgress(0);
+  };
+  const handleClaimSavings = () => {
+    setTotalBalance((prev) => prev + savingsGoal);
+    setSavingsGoal(0);
+    setSavingsProgress(0);
+  };
 
   return (
     <>
-      <div className="min-h-screen px-4 py-10">
+      <div className="min-h-screen px-10 py-10">
         {/* Top Bar */}
         <div className="max-w-7xl mx-auto mb-6 flex flex-col items-center">
           <div className="w-full flex justify-between items-center mb-2">
@@ -167,57 +174,35 @@ const SettingsBudget = () => {
 
           {/* Summary Panel */}
           <div className="space-y-6">
-            {/* Monthly Balance */}
-            <div className="bg-white p-6 rounded-xl shadow">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-gray-500">Monthly Balance</span>
-                <button className="text-purple-600 underline text-sm">
-                  Edit
-                </button>
-              </div>
-              <p className="text-2xl font-bold">Rp 100,000.00</p>
-              <div className="flex items-center justify-start mt-1 gap-1 text-green-500">
-                <span>▲</span>
-                <span>+2.5%</span>
-              </div>
-            </div>
-            {/* Total Balance */}
-            <div className="bg-white p-6 rounded-xl shadow">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-gray-500">Total Balance</span>
-              </div>
-              <p className="text-2xl font-bold">Rp 25,430.82</p>
-              <div className="flex items-center justify-start mt-1 gap-1 text-green-500">
-                <span>▲</span>
-                <span>+2.5%</span>
-              </div>
-            </div>
-            {/* Savings Goal */}
-            <div className="bg-white p-6 rounded-xl shadow">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-gray-500">Savings Goal</span>
-                <button className="text-purple-600 underline text-sm">
-                  Edit
-                </button>
-              </div>
-              <p className="text-2xl font-bold">Rp 150,000.00</p>
-              <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
-                <div
-                  className="bg-purple-600 h-2 rounded-full"
-                  style={{ width: "72%" }}
-                ></div>
-              </div>
-              <div className="flex justify-between mt-2 text-gray-600 text-sm">
-                <span>72% achieved</span>
-                <span>12 days left</span>
-              </div>
-              <button className="bg-purple-600 text-white px-4 py-2 rounded mt-4 w-full hover:bg-purple-700">
-                Claim Savings
-              </button>
-            </div>
+            <MonthlyBalanceCard
+              onEditClick={handleOpenBalanceModal}
+              balance={currentBalance}
+            />
+            <TotalBalanceCard />
+            <SavingsGoalCard
+              onEditClick={handleOpenSavingsGoalModal}
+              onClaimClick={handleClaimSavings}
+              goal={savingsGoal}
+              progress={savingsProgress}
+              daysLeft={savingsDaysLeft}
+            />
           </div>
         </div>
       </div>
+      <SetBalanceModal
+        isOpen={isBalanceModalOpen}
+        onClose={handleCloseBalanceModal}
+        onSave={handleSaveBalance}
+        currentBalance={currentBalance}
+      />
+      <SetSavingsGoalModal
+        isOpen={isSavingsGoalModalOpen}
+        onClose={handleCloseSavingsGoalModal}
+        onSave={handleSaveSavingsGoal}
+        currentGoal={savingsGoal}
+        progressPercentage={savingsProgress}
+        daysLeft={savingsDaysLeft}
+      />
     </>
   );
 };
