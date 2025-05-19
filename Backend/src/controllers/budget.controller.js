@@ -455,6 +455,29 @@ const deleteBudget = async (req, res) => {
   }
 };
 
+const getBudgetProgressByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { timeframe } = req.query;
+
+    const budgets = await budgetRepository.getBudgetProgressByUserId(
+      userId,
+      timeframe
+    );
+
+    res.status(200).json({
+      success: true,
+      data: budgets,
+    });
+  } catch (error) {
+    console.error("Error getting budgets by user ID:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to retrieve budgets",
+    });
+  }
+};
+
 module.exports = {
   getAllBudgets,
   getBudgetById,
@@ -465,4 +488,5 @@ module.exports = {
   updateBudget,
   deleteBudget,
   getBudgetsByCategory,
+  getBudgetProgressByUserId,
 };

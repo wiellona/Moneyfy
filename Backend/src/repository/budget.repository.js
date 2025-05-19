@@ -245,6 +245,48 @@ const deleteBudget = async (budgetId) => {
   return result.rows[0];
 };
 
+const getBudgetProgressByUserId = async (userId, timeframe) => {
+  let dateFilter;
+
+  switch (timeframe) {
+    case "week":
+      dateFilter = "AND b.start_date >= CURRENT_DATE - INTERVAL '7 days'";
+      break;
+    case "month":
+      dateFilter = "AND b.start_date >= DATE_TRUNC('month', CURRENT_DATE)";
+      break;
+    case "year":
+      dateFilter = "AND b.start_date >= DATE_TRUNC('year', CURRENT_DATE)";
+      break;
+    default:
+      dateFilter = ""; // No time filter by default
+  }
+
+  const result = await query(
+    `SELECT b.budget_id, b.amount as budget_amount, 
+            COALESCE(SUM(t.amount), 0) as spent_amount,
+            b.amount - COALESCE(SUM(t.amount), 0) as remaining_amount,
+            CASE 
+              WHEN b.amount = 0 THEN 0
+              ELSE ROUND((COALESCE(SUM(t.amount), 0) * 100.0 / b.amount))
+            END as percentage_used,
+            c.name as category_name, c.type as category_type,
+            b.start_date, b.end_date
+     FROM budgets b
+     LEFT JOIN categories c ON b.category_id = c.category_id
+     LEFT JOIN transactions t ON 
+        b.user_id = t.user_id AND
+        b.category_id = t.category_id AND
+        t.date BETWEEN b.start_date AND b.end_date AND
+        t.transaction_type = 'expense'
+     WHERE b.user_id = $1 ${dateFilter}
+     GROUP BY b.budget_id, b.amount, c.name, c.type, b.start_date, b.end_date
+     ORDER BY b.start_date DESC`,
+    [userId]
+  );
+  return result.rows;
+};
+
 module.exports = {
   getAllBudgets,
   getBudgetById,
@@ -258,4 +300,5 @@ module.exports = {
   getBudgetsByDateRange,
   getBudgetsByMonth,
   getBudgetsByCategory,
+  getBudgetProgressByUserId,
 };

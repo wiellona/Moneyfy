@@ -432,6 +432,35 @@ const getTransactionSummary = async (req, res) => {
   }
 };
 
+// Get income vs expenses for the past months
+const getIncomeVsExpenses = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    // Get year from query params, default to current year if not provided
+    const year = req.query.year
+      ? parseInt(req.query.year)
+      : new Date().getFullYear();
+
+    if (!userId) {
+      return baseResponse(res, false, 400, "User ID is required", null);
+    }
+
+    const incomeVsExpensesData =
+      await transactionRepository.getIncomeVsExpenses(userId, year);
+
+    return res.status(200).json({
+      success: true,
+      data: incomeVsExpensesData,
+    });
+  } catch (error) {
+    console.error("Error in getIncomeVsExpenses controller:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve income vs expenses data",
+    });
+  }
+};
+
 module.exports = {
   getAllTransactions,
   getTransactionById,
@@ -441,4 +470,5 @@ module.exports = {
   updateTransaction,
   deleteTransaction,
   getTransactionSummary,
+  getIncomeVsExpenses,
 };

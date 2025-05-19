@@ -32,4 +32,10 @@ router.put("/:id", budgetController.updateBudget);
 // DELETE budget
 router.delete("/:id", budgetController.deleteBudget);
 
+// GET budget progress by user ID
+router.get(
+  "/user/:userId/progress",
+  budgetController.getBudgetProgressByUserId
+);
+
 module.exports = router;
