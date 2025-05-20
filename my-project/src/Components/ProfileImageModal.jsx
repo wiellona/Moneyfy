@@ -46,7 +46,7 @@ const ProfileImageModal = ({ isOpen, onClose, currentImage, user }) => {
       console.log("Response from server:", response.data);
 
       // Update the user's profile image in the context
-      updateProfileImage(response.data.payload.profileImage);
+      updateProfileImage(response.data.payload.profile_img_url);
 
       // Close the modal
       onClose();
