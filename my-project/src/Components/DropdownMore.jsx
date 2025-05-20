@@ -1,7 +1,7 @@
 import { MoreVertical } from "lucide-react";
 import { useEffect, useRef } from "react";
 
-function DropdownMore({ id }) {
+function DropdownMore({ id, item }) {
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -21,26 +21,52 @@ function DropdownMore({ id }) {
   }, [id]);
 
   const handleClickDelete = () => {
-    const dropdown = document.getElementById(`moreDropdown-${id}`);
-    if (dropdown && !dropdown.classList.contains("hidden")) {
-      dropdown.classList.add("hidden");
-    }
+    if (!item?.budget_id) {
+      const dropdown = document.getElementById(`moreDropdown-${id}`);
+      if (dropdown && !dropdown.classList.contains("hidden")) {
+        dropdown.classList.add("hidden");
+      }
 
-    const modal = document.getElementById("popup-modal");
-    if (modal) {
-      modal.classList.toggle("hidden");
+      const modal = document.getElementById("popup-modal");
+      if (modal) {
+        modal.classList.toggle("hidden");
+      }
+    } else if (item?.budget_id) {
+      console.log("clicked", item);
+      const dropdown = document.getElementById(`moreDropdown-${id}`);
+      if (dropdown && !dropdown.classList.contains("hidden")) {
+        dropdown.classList.add("hidden");
+      }
+
+      const modal = document.getElementById("popup-modal-budget");
+      if (modal) {
+        modal.classList.toggle("hidden");
+      }
     }
   };
 
   const handleClickEdit = () => {
-    const dropdown = document.getElementById(`moreDropdown-${id}`);
-    if (dropdown && !dropdown.classList.contains("hidden")) {
-      dropdown.classList.add("hidden");
-    }
+    if (!item?.budget_id) {
+      const dropdown = document.getElementById(`moreDropdown-${id}`);
+      if (dropdown && !dropdown.classList.contains("hidden")) {
+        dropdown.classList.add("hidden");
+      }
 
-    const modal = document.getElementById("crud-modal");
-    if (modal) {
-      modal.classList.toggle("hidden");
+      const modal = document.getElementById("crud-modal");
+      if (modal) {
+        modal.classList.toggle("hidden");
+      }
+    } else if (item?.budget_id) {
+      console.log("clicked", item);
+      const dropdown = document.getElementById(`moreDropdown-${id}`);
+      if (dropdown && !dropdown.classList.contains("hidden")) {
+        dropdown.classList.add("hidden");
+      }
+
+      const modal = document.getElementById("crud-modal-budget");
+      if (modal) {
+        modal.classList.toggle("hidden");
+      }
     }
   };
 

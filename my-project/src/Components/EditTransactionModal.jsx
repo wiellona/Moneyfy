@@ -1,32 +1,99 @@
+import axios from "axios";
 import { ArrowDown } from "lucide-react";
-import React from "react";
+import { useEffect, useState } from "react";
 
-function EditTransactionModal() {
-  const [transactionType, setTransactionType] = React.useState("expense");
-  const [amount, setAmount] = React.useState("");
-  const [category, setCategory] = React.useState("");
-  const [date, setDate] = React.useState("");
-  const [note, setNote] = React.useState("");
+function EditTransactionModal({ item, handleSave, setSelectedItem }) {
+  const [transactionType, setTransactionType] = useState("");
+  const [amount, setAmount] = useState("");
+  const [category, setCategory] = useState("");
+  const [date, setDate] = useState("");
+  const [note, setNote] = useState("");
+  const [categoryOptions, setCategoryOptions] = useState({
+    income: [],
+    expense: [],
+  });
+
+  useEffect(() => {
+    const getAllCategories = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/categories`
+        );
+
+        const categories = response.data.data;
+        console.log("Categories:", categories);
+        const expenseCategories = categories.filter(
+          (category) => category.type === "expense"
+        );
+        const incomeCategories = categories.filter(
+          (category) => category.type === "income"
+        );
+
+        setCategoryOptions({
+          income: incomeCategories,
+          expense: expenseCategories,
+        });
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+    getAllCategories();
+  }, [item]);
 
   const handleClose = () => {
     const modal = document.getElementById("crud-modal");
     if (modal) {
       modal.classList.add("hidden");
     }
+    setSelectedItem(null);
+  };
+
+  const formattedDate = (date) => {
+    if (!date) return "";
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
+
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  useEffect(() => {
+    if (item) {
+      setTransactionType(item?.transaction_type);
+      setAmount(item?.amount);
+      setCategory(item?.category_id);
+      setDate(formattedDate(item?.date));
+      setNote(item?.note);
+    }
+  }, [item]);
+
+  const handleSaveTransaction = () => {
+    const updatedTransaction = {
+      transaction_type: transactionType,
+      amount: amount,
+      category_id: category,
+      date: date,
+      note: note,
+    };
+
+    handleSave(updatedTransaction, item?.transaction_id);
   };
 
   return (
     <div>
       <div
         id="crud-modal"
-        tabindex="-1"
+        tabIndex="-1"
         aria-hidden="true"
-        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full md:inset-0 h-screen bg-black bg-opacity-50"
+        className="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full md:inset-0 h-screen bg-black bg-opacity-50"
       >
-        <div class="relative p-4 w-full max-w-md max-h-full">
+        <div className="relative p-4 w-full max-w-md max-h-full">
           <div className="bg-white rounded-3xl shadow-md p-6 md:p-8">
             <h1 className="text-2xl font-bold text-center mb-6">
-              Add Transactions
+              Edit Transaction
             </h1>
 
             {/* Transaction Type Selector */}
@@ -37,7 +104,10 @@ function EditTransactionModal() {
                     ? "bg-indigo-600 text-white"
                     : "bg-gray-100 text-gray-700"
                 }`}
-                onClick={() => setTransactionType("expense")}
+                onClick={() => {
+                  setTransactionType("expense");
+                  setCategory("");
+                }}
               >
                 <ArrowDown />
                 Expense
@@ -48,7 +118,10 @@ function EditTransactionModal() {
                     ? "bg-indigo-600 text-white"
                     : "bg-gray-100 text-gray-700"
                 }`}
-                onClick={() => setTransactionType("income")}
+                onClick={() => {
+                  setTransactionType("income");
+                  setCategory("");
+                }}
               >
                 Mark as Income
               </button>
@@ -64,14 +137,26 @@ function EditTransactionModal() {
                 >
                   Amount
                 </label>
-                <input
-                  type="number"
-                  id="amount"
-                  placeholder="0.00"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span className="text-gray-500">Rp</span>
+                  </div>
+                  <input
+                    type="text"
+                    id="amount"
+                    placeholder="0"
+                    value={
+                      typeof amount === "number"
+                        ? new Intl.NumberFormat("id-ID").format(amount)
+                        : amount
+                    }
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "");
+                      setAmount(value ? parseInt(value, 10) : "");
+                    }}
+                    className="w-full pl-10 px-3 py-2 bg-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
               </div>
 
               {/* Category and Date */}
@@ -92,11 +177,30 @@ function EditTransactionModal() {
                       className="w-full px-3 py-2 bg-gray-50 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
                       <option value="">Select Category</option>
-                      <option value="food">Food</option>
-                      <option value="transport">Transport</option>
-                      <option value="entertainment">Entertainment</option>
-                      <option value="utilities">Utilities</option>
-                      <option value="shopping">Shopping</option>
+                      {transactionType === "income" && (
+                        <>
+                          {categoryOptions?.income.map((option) => (
+                            <option
+                              key={option?.category_id}
+                              value={option?.category_id}
+                            >
+                              {option.name}
+                            </option>
+                          ))}
+                        </>
+                      )}
+                      {transactionType === "expense" && (
+                        <>
+                          {categoryOptions?.expense.map((option) => (
+                            <option
+                              key={option?.category_id}
+                              value={option?.category_id}
+                            >
+                              {option.name}
+                            </option>
+                          ))}
+                        </>
+                      )}
                     </select>
                     <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                       <svg
@@ -162,7 +266,7 @@ function EditTransactionModal() {
                   rows={4}
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 bg-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
                 ></textarea>
               </div>
 
@@ -177,7 +281,7 @@ function EditTransactionModal() {
                 </button>
                 <button
                   type="button"
-                  // onClick={handleSaveTransaction}
+                  onClick={handleSaveTransaction}
                   className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
                 >
                   Save Transaction
