@@ -72,9 +72,9 @@ function EditTransactionModal({ item, handleSave, setSelectedItem }) {
 
   const handleSaveTransaction = () => {
     const updatedTransaction = {
-      transaction_type: transactionType,
+      transactionType: transactionType,
       amount: amount,
-      category_id: category,
+      categoryId: category,
       date: date,
       note: note,
     };

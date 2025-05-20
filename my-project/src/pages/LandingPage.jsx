@@ -4,54 +4,139 @@ import wieloImage from "../assets/Wielo.jpeg";
 import ikhsanImage from "../assets/ikhsan.jpeg";
 
 import { AlignEndHorizontal, FolderLock, Goal } from "lucide-react";
+import { motion } from "motion/react";
+
+// Animation variants for elements
+const fadeInUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6 },
+  },
+};
+
+const fadeIn = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { duration: 0.8 },
+  },
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2,
+    },
+  },
+};
+
+const scaleIn = {
+  hidden: { scale: 0.8, opacity: 0 },
+  visible: {
+    scale: 1,
+    opacity: 1,
+    transition: { duration: 0.5 },
+  },
+};
 
 const LandingPage = () => {
   return (
     <div className="">
+      {" "}
       <div className="bg-gradient-to-br from-white to-purple-200 h-full p-4">
         <div className="landing-page text-black">
           {/* Hero Section */}
-          <div className="text-center py-20 px-8 flex flex-col justify-center items-center ">
-            <h1 className="text-5xl font-extrabold mb-6">
+          <motion.div
+            className="text-center py-20 px-8 flex flex-col justify-center items-center"
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
+          >
+            <motion.h1
+              className="text-5xl font-extrabold mb-6"
+              variants={fadeInUp}
+            >
               Track. Save.{" "}
               <span className="text-indigo-600">Spend smarter.</span>
-            </h1>
-            <p className="text-xl mb-6 text-gray-700">
+            </motion.h1>
+            <motion.p
+              className="text-xl mb-6 text-gray-700"
+              variants={fadeInUp}
+            >
               Moneyfy shows where your cash goes, helps you save more, and spend
               like a boss 😎. No stress, just smart moves. 🧠
-            </p>
-            <button className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white py-3 px-6 rounded-full text-xl hover:bg-indigo-800 mt-6">
+            </motion.p>
+            <motion.button
+              className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white py-3 px-6 rounded-full text-xl hover:bg-indigo-800 mt-6"
+              variants={scaleIn}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
               Get started
-            </button>
-          </div>
-
+            </motion.button>
+          </motion.div>{" "}
           {/* Image showcase */}
-          <div className="my-8 md:px-[10%]">
-            <img
+          <motion.div
+            className="my-8 md:px-[10%]"
+            initial="hidden"
+            animate="visible"
+            variants={fadeIn}
+          >
+            <motion.img
               src=".\src\assets\dashboard.png"
               className="w-full shadow-lg rounded-lg border"
-              alt=""
+              alt="Dashboard preview"
+              variants={scaleIn}
+              whileHover={{ scale: 1.02 }}
             />
-          </div>
-
+          </motion.div>{" "}
           {/* Stats Section */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 px-8 mb-12 py-6 rounded-lg ">
-            <div className="stat-box bg-white p-6 rounded-lg shadow-md text-center">
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-3 gap-8 px-8 mb-12 py-6 rounded-lg"
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
+          >
+            <motion.div
+              className="stat-box bg-white p-6 rounded-lg shadow-md text-center"
+              variants={fadeInUp}
+              whileHover={{
+                y: -5,
+                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
+              }}
+            >
               <h3 className="text-3xl font-bold text-indigo-600">1M+</h3>
               <p className="text-sm text-gray-600">Active Users</p>
-            </div>
-            <div className="stat-box bg-white p-6 rounded-lg shadow-md text-center">
+            </motion.div>
+            <motion.div
+              className="stat-box bg-white p-6 rounded-lg shadow-md text-center"
+              variants={fadeInUp}
+              whileHover={{
+                y: -5,
+                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
+              }}
+            >
               <h3 className="text-3xl font-bold text-indigo-600">50M+</h3>
               <p className="text-sm text-gray-600">Transactions Tracked</p>
-            </div>
-            <div className="stat-box bg-white p-6 rounded-lg shadow-md text-center">
+            </motion.div>
+            <motion.div
+              className="stat-box bg-white p-6 rounded-lg shadow-md text-center"
+              variants={fadeInUp}
+              whileHover={{
+                y: -5,
+                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
+              }}
+            >
               <h3 className="text-3xl font-bold text-indigo-600">$500M+</h3>
               <p className="text-sm text-gray-600">User Savings</p>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
-
       {/* About MoneyFy Section */}
       <div id="about" className="about-container bg-white text-black py-10">
         <div className="max-w-6xl mx-auto text-center px-6">
@@ -65,10 +150,8 @@ const LandingPage = () => {
           </p>
         </div>
       </div>
-
       {/* About Us Section */}
       {/* <AboutUsSection /> */}
-
       {/* Why Choose Section */}
       <div className="bg-white py-16">
         <div className="max-w-6xl mx-auto text-center px-6">
