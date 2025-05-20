@@ -1,9 +1,11 @@
-import React, { useContext, useState } from "react";
 import "lucide-react";
+import { useContext, useState } from "react";
 import { UserContext } from "../context/AuthContext";
+import ProfileImageModal from "./ProfileImageModal";
 
 const Header = ({ user }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const { logout } = useContext(UserContext);
 
   const toggleMobileMenu = () => {
@@ -14,8 +16,21 @@ const Header = ({ user }) => {
     logout();
   };
 
+  const openProfileModal = () => {
+    setIsProfileModalOpen(true);
+  };
+
+  const closeProfileModal = () => {
+    setIsProfileModalOpen(false);
+  };
   return (
     <div className="sticky top-0 left-0 w-full z-10 py-5 px-5">
+      <ProfileImageModal
+        isOpen={isProfileModalOpen}
+        onClose={closeProfileModal}
+        currentImage={user?.profileImage}
+        user={user}
+      />
       <header className="bg-white shadow-md p-4 rounded-lg ">
         {/* Desktop Menu */}
         <div className="hidden md:flex justify-between items-center">
@@ -37,6 +52,7 @@ const Header = ({ user }) => {
 
           {user ? (
             <div className="flex gap-4 items-center">
+              {" "}
               <button
                 onClick={() =>
                   document
@@ -46,17 +62,24 @@ const Header = ({ user }) => {
                 className="flex items-center text-sm font-medium text-gray-900 rounded-full hover:text-blue-600 "
                 type="button"
               >
-                {user.profileImage ? (
-                  <img
-                    className="w-10 h-10 me-2 rounded-full object-cover"
-                    src={user.profileImage}
-                    alt="user avatar"
-                  />
-                ) : (
-                  <div className="w-10 h-10 me-2 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xl font-bold">
-                    {user.name ? user.name.charAt(0).toUpperCase() : "U"}
-                  </div>
-                )}
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openProfileModal();
+                  }}
+                >
+                  {user.profileImage ? (
+                    <img
+                      className="w-10 h-10 me-2 rounded-full object-cover cursor-pointer"
+                      src={user.profileImage}
+                      alt="user avatar"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 me-2 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xl font-bold cursor-pointer">
+                      {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+                    </div>
+                  )}
+                </div>
                 <span>{user.name || "User"}</span>
                 <svg
                   className="w-2.5 h-2.5 ms-3"
@@ -74,7 +97,6 @@ const Header = ({ user }) => {
                   />
                 </svg>
               </button>
-
               <div
                 id="userDropdown"
                 className="hidden absolute right-2 top-full bg-white divide-y divide-gray-100 rounded-lg shadow-lg w-48 z-20"
@@ -85,6 +107,17 @@ const Header = ({ user }) => {
                 </div>
                 <ul className="py-2 text-sm text-gray-700">
                   <li>
+                    <li>
+                      {" "}
+                      <button
+                        onClick={() => {
+                          setIsProfileModalOpen(true);
+                        }}
+                        className="w-full px-4 py-2 hover:bg-gray-100 text-left flex items-center gap-2"
+                      >
+                        Change Profile
+                      </button>
+                    </li>
                     <a
                       href="/dashboard"
                       className="block px-4 py-2 hover:bg-gray-100"
@@ -103,7 +136,7 @@ const Header = ({ user }) => {
                 </ul>
                 <div className="py-2">
                   <button
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full"
                     onClick={handleLogout}
                   >
                     Sign out
@@ -152,6 +185,7 @@ const Header = ({ user }) => {
           <div className="md:hidden  flex flex-col items-start bg-white shadow-lg p-4 space-y-5">
             {user ? (
               <div className="flex gap-4 items-center">
+                {" "}
                 <button
                   onClick={() =>
                     document
@@ -161,17 +195,24 @@ const Header = ({ user }) => {
                   className="flex items-center text-sm font-medium text-gray-900 rounded-full hover:text-blue-600 "
                   type="button"
                 >
-                  {user.profileImage ? (
-                    <img
-                      className="w-10 h-10 me-2 rounded-full object-cover"
-                      src={user.profileImage}
-                      alt="user avatar"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 me-2 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xl font-bold">
-                      {user.name ? user.name.charAt(0).toUpperCase() : "U"}
-                    </div>
-                  )}
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openProfileModal();
+                    }}
+                  >
+                    {user.profileImage ? (
+                      <img
+                        className="w-10 h-10 me-2 rounded-full object-cover cursor-pointer"
+                        src={user.profileImage}
+                        alt="user avatar"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 me-2 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xl font-bold cursor-pointer">
+                        {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+                      </div>
+                    )}
+                  </div>
                   <span>{user.name || "User"}</span>
                   <svg
                     className="w-2.5 h-2.5 ms-3"
@@ -189,7 +230,6 @@ const Header = ({ user }) => {
                     />
                   </svg>
                 </button>
-
                 <div
                   id="userDropdownMobile"
                   className="hidden absolute top-32 bg-white divide-y divide-gray-100 rounded-lg shadow-lg w-48 z-20"
@@ -197,8 +237,18 @@ const Header = ({ user }) => {
                   <div className="px-4 py-3 text-sm text-gray-900">
                     <div className="font-medium">{user.name}</div>
                     <div className="truncate">{user.email}</div>
-                  </div>
+                  </div>{" "}
                   <ul className="py-2 text-sm text-gray-700">
+                    <li>
+                      <button
+                        onClick={() => {
+                          setIsProfileModalOpen(true);
+                        }}
+                        className="block px-4 py-2 hover:bg-gray-100 w-full text-left"
+                      >
+                        Change Profile
+                      </button>
+                    </li>
                     <li>
                       <a
                         href="/dashboard"
