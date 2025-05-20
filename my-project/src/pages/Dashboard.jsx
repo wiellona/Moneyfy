@@ -16,13 +16,48 @@ import DeleteTransactionModal from "../Components/DeleteTransactionModal";
 import DropdownMore from "../Components/DropdownMore";
 import EditBudgetModal from "../Components/EditBudgetModal";
 import EditTransactionModal from "../Components/EditTransactionModal";
+import { motion } from "motion/react";
+import CountUp from "react-countup";
 import {
   SkeletonCard,
   SkeletonCategoryItem,
   SkeletonChart,
   SkeletonTransaction,
 } from "../Components/Skeleton";
+// Animation variants for motion components
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      when: "beforeChildren",
+      staggerChildren: 0.1,
+    },
+  },
+};
 
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: "spring",
+      stiffness: 100,
+    },
+  },
+};
+
+const chartVariants = {
+  hidden: { opacity: 0, scale: 0.9 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.5,
+    },
+  },
+};
 const Dashboard = ({ user }) => {
   const [userData, setUserData] = useState({
     name: user.name,
@@ -444,7 +479,6 @@ const Dashboard = ({ user }) => {
       toast.error("Failed to edit budget");
     }
   };
-
   return (
     <div className="">
       <DeleteTransactionModal
@@ -467,9 +501,22 @@ const Dashboard = ({ user }) => {
         setSelectedItem={setSelectedItem}
       />
       {/* Dashboard Content */}
-      <div className="px-4 sm:px-6 md:px-10 py-4">
-        <h2 className="text-xl sm:text-2xl font-bold mb-3">Dashboard</h2>
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3 sm:gap-0">
+      <motion.div
+        className="px-4 sm:px-6 md:px-10 py-4"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.h2
+          className="text-xl sm:text-2xl font-bold mb-3"
+          variants={itemVariants}
+        >
+          Dashboard
+        </motion.h2>
+        <motion.div
+          className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3 sm:gap-0"
+          variants={itemVariants}
+        >
           <h3 className="text-lg">
             Hello, {user.name}! <span>👋</span>
           </h3>
@@ -514,49 +561,78 @@ const Dashboard = ({ user }) => {
                   This Month
                 </button>
               </div>
-            </div>
-            <button
+            </div>{" "}
+            <motion.button
               onClick={() => navigate("/set-budget")}
               className="flex items-center gap-1 bg-indigo-600 text-white px-3 py-1 rounded"
+              whileHover={{ scale: 1.05, backgroundColor: "#4F46E5" }}
+              whileTap={{ scale: 0.95 }}
             >
               <span className="text-sm">Set Budget </span>
               <div className="ml-1 w-5 h-5 flex justify-center items-center">
                 <Coins />
               </div>
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               onClick={() => navigate("/add-transaction")}
               className="flex items-center gap-1 bg-indigo-600 text-white px-3 py-1 rounded"
+              whileHover={{ scale: 1.05, backgroundColor: "#4F46E5" }}
+              whileTap={{ scale: 0.95 }}
             >
               <span className="text-sm">Add Transaction</span>
               <div className="ml-1 w-5 h-5 flex justify-center items-center">
                 <Plus />
               </div>
-            </button>
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <motion.div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
           {/* Total Balance */}
           {loading.balance ? (
             <SkeletonCard />
           ) : (
-            <div className="bg-white p-4 rounded-lg shadow-sm">
+            <motion.div
+              className="bg-white p-4 rounded-lg shadow-sm"
+              variants={itemVariants}
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 400 }}
+            >
               <p className="text-xs text-gray-500 mb-1">Total Balance</p>
               <h4 className="text-xl font-semibold mb-1">
-                Rp {formatCurrency(userData.totalBalance)}
+                Rp{" "}
+                <CountUp
+                  end={userData.totalBalance}
+                  separator=","
+                  duration={1}
+                />
               </h4>
-            </div>
+            </motion.div>
           )}
 
           {/* Monthly Income */}
           {loading.monthlySummary ? (
             <SkeletonCard />
           ) : (
-            <div className="bg-white p-4 rounded-lg shadow-sm">
+            <motion.div
+              className="bg-white p-4 rounded-lg shadow-sm"
+              variants={itemVariants}
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 400 }}
+            >
               <p className="text-xs text-gray-500 mb-1">Monthly Income</p>
               <h4 className="text-xl font-semibold mb-1">
-                Rp {formatCurrency(userData.monthlyIncome)}
+                Rp{" "}
+                <CountUp
+                  end={userData.monthlyIncome}
+                  separator=","
+                  duration={1}
+                />
               </h4>
               <div
                 className={`flex items-center text-xs ${
@@ -572,17 +648,27 @@ const Dashboard = ({ user }) => {
                 )}
                 <span>{formatPercentage(userData.monthlyIncomePercent)}</span>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Monthly Expenses */}
           {loading.monthlySummary ? (
             <SkeletonCard />
           ) : (
-            <div className="bg-white p-4 rounded-lg shadow-sm">
+            <motion.div
+              className="bg-white p-4 rounded-lg shadow-sm"
+              variants={itemVariants}
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 400 }}
+            >
               <p className="text-xs text-gray-500 mb-1">Monthly Expenses</p>
               <h4 className="text-xl font-semibold mb-1">
-                Rp {formatCurrency(userData.monthlyExpenses)}
+                Rp{" "}
+                <CountUp
+                  end={userData.monthlyExpenses}
+                  separator=","
+                  duration={1}
+                />
               </h4>
               <div
                 className={`flex items-center text-xs ${
@@ -598,50 +684,83 @@ const Dashboard = ({ user }) => {
                 )}
                 <span>{formatPercentage(userData.monthlyExpensesPercent)}</span>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Savings Goal Card */}
           {loading.savingsGoal ? (
             <SkeletonCard />
           ) : (
-            <div className="bg-white p-4 rounded-lg shadow-sm">
+            <motion.div
+              className="bg-white p-4 rounded-lg shadow-sm"
+              variants={itemVariants}
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 400 }}
+            >
               <p className="text-xs text-gray-500 mb-1">Savings Goal</p>
               <h4 className="text-xl font-semibold mb-1">
-                Rp {formatCurrency(userData?.savingsGoal[0]?.current_amount)}
+                Rp{" "}
+                <CountUp
+                  end={userData?.savingsGoal[0]?.current_amount || 0}
+                  separator=","
+                  duration={1}
+                />
               </h4>
-              <div className="mt-1 w-full bg-gray-200 rounded-full h-2">
-                <div
+              <motion.div
+                className="mt-1 w-full bg-gray-200 rounded-full h-2"
+                initial={{ width: 0 }}
+                animate={{ width: "100%" }}
+                transition={{ duration: 0.5 }}
+              >
+                <motion.div
                   className="bg-indigo-600 h-2 rounded-full"
                   style={{ width: `${goalsPercent}%` }}
-                ></div>
-              </div>
+                  initial={{ width: 0 }}
+                  animate={{ width: `${goalsPercent}%` }}
+                  transition={{ duration: 1, delay: 0.3 }}
+                ></motion.div>
+              </motion.div>
               <div className="flex justify-between text-xs mt-1">
                 <span>{goalsPercent.toFixed(2)}% achieved</span>
                 <span>{savingsGoalDaysLeft} days left</span>
               </div>
-            </div>
+            </motion.div>
           )}
-        </div>
-
+        </motion.div>{" "}
         {/* Charts and Analytics */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Income vs Expenses Chart */}
           {loading.incomeVsExpenses ? (
             <SkeletonChart />
           ) : (
-            <div className="bg-white p-4 rounded-lg shadow-sm">
+            <motion.div
+              className="bg-white p-4 rounded-lg shadow-sm"
+              variants={chartVariants}
+              initial="hidden"
+              animate="visible"
+              whileHover={{
+                scale: 1.01,
+                boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+              }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2 sm:gap-0">
                 <h4 className="font-medium">Income vs Expenses</h4>
                 <div className="flex items-center gap-4 flex-wrap">
-                  <div className="flex items-center gap-1">
+                  <motion.div
+                    className="flex items-center gap-1"
+                    whileHover={{ scale: 1.1 }}
+                  >
                     <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
                     <span className="text-xs">Income</span>
-                  </div>
-                  <div className="flex items-center gap-1">
+                  </motion.div>
+                  <motion.div
+                    className="flex items-center gap-1"
+                    whileHover={{ scale: 1.1 }}
+                  >
                     <div className="w-3 h-3 rounded-full bg-red-400"></div>
                     <span className="text-xs">Expenses</span>
-                  </div>
+                  </motion.div>
                 </div>
               </div>
               <div className="relative h-64">
@@ -649,6 +768,7 @@ const Dashboard = ({ user }) => {
                   <BarChart
                     data={userData?.incomeVsExpenses}
                     margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
+                    animationDuration={1000}
                   >
                     <XAxis
                       dataKey="month_name"
@@ -667,82 +787,130 @@ const Dashboard = ({ user }) => {
                     />
                   </BarChart>
                 </ResponsiveContainer>
-                <button
+                <motion.button
                   className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400"
                   onClick={() => setSelectedYear(selectedYear - 1)}
+                  whileHover={{ scale: 1.2, color: "#4F46E5" }}
+                  whileTap={{ scale: 0.9 }}
                 >
                   <ChevronLeft size={30} />
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400"
                   onClick={() => setSelectedYear(selectedYear + 1)}
+                  whileHover={{ scale: 1.2, color: "#4F46E5" }}
+                  whileTap={{ scale: 0.9 }}
                 >
                   <ChevronRight size={30} />
-                </button>
-                <span className="absolute bottom-0 left-1/2 text-base">
+                </motion.button>
+                <motion.span
+                  className="absolute bottom-0 left-1/2 text-base"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  key={selectedYear}
+                >
                   {selectedYear}
-                </span>
+                </motion.span>
               </div>
-            </div>
-          )}
-
+            </motion.div>
+          )}{" "}
           {/* Spending by Category */}
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <h4 className="font-medium mb-4">Spending by Category</h4>
-            <div className="flex flex-col gap-3 max-h-64 overflow-y-auto">
-              {loading.spendingByFilter ? (
-                <>
-                  <SkeletonCategoryItem />
-                  <SkeletonCategoryItem />
-                  <SkeletonCategoryItem />
-                  <SkeletonCategoryItem />
-                </>
-              ) : filteredSpendingByCategory?.length > 0 ? (
-                <>
-                  {filteredSpendingByCategory?.map((item, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between"
+          {loading.spendingByFilter ? (
+            <SkeletonChart />
+          ) : (
+            <motion.div
+              className="bg-white p-4 rounded-lg shadow-sm"
+              variants={chartVariants}
+              whileHover={{
+                scale: 1.01,
+                boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+              }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <motion.h4 className="font-medium mb-4" variants={itemVariants}>
+                Spending by Category
+              </motion.h4>
+              <motion.div
+                className="flex flex-col gap-3 max-h-64 overflow-y-auto"
+                variants={containerVariants}
+              >
+                {loading.spendingByFilter ? (
+                  <>
+                    <SkeletonCategoryItem />
+                    <SkeletonCategoryItem />
+                    <SkeletonCategoryItem />
+                    <SkeletonCategoryItem />
+                  </>
+                ) : filteredSpendingByCategory?.length > 0 ? (
+                  <>
+                    {filteredSpendingByCategory?.map((item, index) => (
+                      <motion.div
+                        key={index}
+                        className="flex items-center justify-between"
+                        variants={itemVariants}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <motion.div
+                            className="w-2 h-2 rounded-full"
+                            style={{
+                              backgroundColor:
+                                index % 3 === 0
+                                  ? "#6366F1"
+                                  : index % 3 === 1
+                                  ? "#8B5CF6"
+                                  : "#EC4899",
+                            }}
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{
+                              delay: index * 0.05 + 0.2,
+                              type: "spring",
+                            }}
+                          ></motion.div>
+                          <span className="text-sm">{item?.category_name}</span>
+                        </div>
+                        <motion.span
+                          className="text-sm"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: index * 0.05 + 0.1 }}
+                        >
+                          Rp {formatCurrency(item?.amount)}
+                        </motion.span>
+                      </motion.div>
+                    ))}
+                    <motion.div
+                      className="border-t mt-2 pt-2"
+                      variants={itemVariants}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.4 }}
                     >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="w-2 h-2 rounded-full"
-                          style={{
-                            backgroundColor:
-                              index % 3 === 0
-                                ? "#6366F1"
-                                : index % 3 === 1
-                                ? "#8B5CF6"
-                                : "#EC4899",
-                          }}
-                        ></div>
-                        <span className="text-sm">{item?.category_name}</span>
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium">
+                          Total Expenses:
+                        </span>
+                        <span className="text-sm font-medium">
+                          Rp {formatCurrency(totalSpending)}
+                        </span>
                       </div>
-                      <span className="text-sm">
-                        Rp {formatCurrency(item?.amount)}
-                      </span>
-                    </div>
-                  ))}
-                  <div className="border-t mt-2 pt-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm font-medium">
-                        Total Expenses:
-                      </span>
-                      <span className="text-sm font-medium">
-                        Rp {formatCurrency(totalSpending)}
-                      </span>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <p className="text-sm text-gray-500">
-                  No spending data available
-                </p>
-              )}
-            </div>
-          </div>
+                    </motion.div>
+                  </>
+                ) : (
+                  <motion.p
+                    className="text-sm text-gray-500"
+                    variants={itemVariants}
+                  >
+                    No spending data available
+                  </motion.p>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
         </div>
-
         {/* Recent Transactions */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white p-4 rounded-lg shadow-sm">
@@ -895,7 +1063,7 @@ const Dashboard = ({ user }) => {
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
