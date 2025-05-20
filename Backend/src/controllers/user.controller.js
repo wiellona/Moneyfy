@@ -170,9 +170,58 @@ exports.deleteUser = async (req, res) => {
     if (!user) {
       return baseResponse(res, false, 404, "User not found", null);
     }
-
     return baseResponse(res, true, 200, "User deleted", user);
   } catch (error) {
     return baseResponse(res, false, 500, "Error deleting user", error);
+  }
+};
+
+exports.uploadProfileImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return baseResponse(res, false, 400, "No image file provided", null);
+    }
+
+    // Get the user ID from the request
+    const userId = req.body.userId;
+    if (!userId) {
+      return baseResponse(res, false, 401, "User ID is required", null);
+    }
+
+    // Get the user from the repository
+    const user = await userRepository.getUserById(userId);
+    if (!user) {
+      return baseResponse(res, false, 404, "User not found", null);
+    }
+
+    // Upload the image to Cloudinary
+    const cloudinary = require("../utils/cloudinary.util");
+    const imageUrl = await cloudinary.uploadImage(req.file.buffer);
+
+    if (imageUrl) {
+      console.log("Image uploaded successfully:", imageUrl);
+    }
+
+    // Update the user's profile image URL in the database
+    const updatedUser = await userRepository.updateUserProfileImage(
+      userId,
+      imageUrl
+    );
+    return baseResponse(
+      res,
+      true,
+      200,
+      "Profile image updated successfully",
+      updatedUser
+    );
+  } catch (error) {
+    console.error("Error uploading profile image:", error);
+    return baseResponse(
+      res,
+      false,
+      500,
+      "Error uploading profile image",
+      error.message
+    );
   }
 };

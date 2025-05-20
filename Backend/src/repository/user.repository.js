@@ -85,3 +85,16 @@ exports.getUserById = async (id) => {
     console.error("Error executing query", error);
   }
 };
+
+exports.updateUserProfileImage = async (userId, imageUrl) => {
+  try {
+    const res = await db.query(
+      "UPDATE users SET profile_img_url = $1 WHERE user_id = $2 RETURNING *",
+      [imageUrl, userId]
+    );
+    return res.rows[0];
+  } catch (error) {
+    console.error("Error updating profile image:", error);
+    throw error;
+  }
+};
