@@ -32,9 +32,18 @@ export const UserProvider = ({ children }) => {
       setUser(JSON.parse(savedUser));
     }
   }, []);
+  const updateProfileImage = (newImageUrl) => {
+    if (user) {
+      const updatedUser = { ...user, profileImage: newImageUrl };
+      setUser(updatedUser);
+      sessionStorage.setItem("user", JSON.stringify(updatedUser));
+    }
+  };
 
   return (
-    <UserContext.Provider value={{ user, login, logout, isLoggedIn }}>
+    <UserContext.Provider
+      value={{ user, login, logout, isLoggedIn, updateProfileImage }}
+    >
       {children}
     </UserContext.Provider>
   );
