@@ -263,15 +263,20 @@ const getBudgetProgressByUserId = async (userId, timeframe) => {
   }
 
   const result = await query(
-    `SELECT b.budget_id, b.amount as budget_amount, 
+    `SELECT 
+            b.budget_id, 
+            b.category_id,
+            b.amount as budget_amount, 
             COALESCE(SUM(t.amount), 0) as spent_amount,
             b.amount - COALESCE(SUM(t.amount), 0) as remaining_amount,
             CASE 
               WHEN b.amount = 0 THEN 0
               ELSE ROUND((COALESCE(SUM(t.amount), 0) * 100.0 / b.amount))
             END as percentage_used,
-            c.name as category_name, c.type as category_type,
-            b.start_date, b.end_date
+            c.name as category_name, 
+            c.type as category_type,
+            b.start_date, 
+            b.end_date
      FROM budgets b
      LEFT JOIN categories c ON b.category_id = c.category_id
      LEFT JOIN transactions t ON 
@@ -280,7 +285,7 @@ const getBudgetProgressByUserId = async (userId, timeframe) => {
         t.date BETWEEN b.start_date AND b.end_date AND
         t.transaction_type = 'expense'
      WHERE b.user_id = $1 ${dateFilter}
-     GROUP BY b.budget_id, b.amount, c.name, c.type, b.start_date, b.end_date
+     GROUP BY b.budget_id, b.category_id, b.amount, c.name, c.type, b.start_date, b.end_date
      ORDER BY b.start_date DESC`,
     [userId]
   );

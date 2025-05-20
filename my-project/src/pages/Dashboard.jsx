@@ -1,17 +1,27 @@
 import axios from "axios";
-import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronLeft,
+  ChevronRight,
+  Coins,
+  Plus,
+} from "lucide-react";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { Bar, BarChart, ResponsiveContainer, XAxis } from "recharts";
+import DeleteBudgetModal from "../Components/DeleteBudget";
+import DeleteTransactionModal from "../Components/DeleteTransactionModal";
+import DropdownMore from "../Components/DropdownMore";
+import EditBudgetModal from "../Components/EditBudgetModal";
+import EditTransactionModal from "../Components/EditTransactionModal";
 import {
   SkeletonCard,
   SkeletonCategoryItem,
   SkeletonChart,
   SkeletonTransaction,
 } from "../Components/Skeleton";
-import DeleteModal from "../Components/DeleteModal";
-import DropdownMore from "../Components/DropdownMore";
-import EditTransactionModal from "../Components/EditTransactionModal";
 
 const Dashboard = ({ user }) => {
   const [userData, setUserData] = useState({
@@ -29,6 +39,7 @@ const Dashboard = ({ user }) => {
     savingsGoal: [],
   });
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedItem, setSelectedItem] = useState(null);
   const [filterBy, setFilterBy] = useState("month");
   const [loading, setLoading] = useState({
     balance: true,
@@ -39,185 +50,202 @@ const Dashboard = ({ user }) => {
     savingsGoal: true,
     budgetOverview: true,
   });
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const getTotalBalance = async () => {
-      setLoading((prev) => ({ ...prev, balance: true }));
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/account/user/total/${user.user_id}`
-        );
-        if (response.status === 200) {
-          setUserData((prev) => ({
-            ...prev,
-            totalBalance: response.data.payload.totalBalance,
-          }));
-        }
-      } catch (error) {
-        console.error("Error fetching total balance:", error);
-      } finally {
-        setLoading((prev) => ({ ...prev, balance: false }));
+  const getMonthlySummary = async () => {
+    setLoading((prev) => ({ ...prev, monthlySummary: true }));
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/transactions/summary/${
+          user.user_id
+        }?period=month`
+      );
+      if (response.status === 200) {
+        setUserData((prevState) => ({
+          ...prevState,
+          monthlyIncome: response.data.data.total_income,
+          monthlyIncomePercent: response.data.data.income_percentage_change,
+          monthlyExpenses: response.data.data.total_expense,
+          monthlyExpensesPercent: response.data.data.expense_percentage_change,
+        }));
       }
-    };
 
-    getTotalBalance();
-  }, []);
+      console.log("Monthly summary data:", response.data);
+    } catch (error) {
+      console.error("Error fetching monthly summary:", error);
+    } finally {
+      setLoading((prev) => ({ ...prev, monthlySummary: false }));
+    }
+  };
 
-  useEffect(() => {
-    const getMonthlySummary = async () => {
-      setLoading((prev) => ({ ...prev, monthlySummary: true }));
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/transactions/summary/${
-            user.user_id
-          }?period=month`
-        );
-        if (response.status === 200) {
-          setUserData((prevState) => ({
-            ...prevState,
-            monthlyIncome: response.data.data.total_income,
-            monthlyIncomePercent: response.data.data.income_percentage_change,
-            monthlyExpenses: response.data.data.total_expense,
-            monthlyExpensesPercent:
-              response.data.data.expense_percentage_change,
-          }));
-        }
-      } catch (error) {
-        console.error("Error fetching monthly summary:", error);
-      } finally {
-        setLoading((prev) => ({ ...prev, monthlySummary: false }));
+  const getSavingsGoal = async () => {
+    setLoading((prev) => ({ ...prev, savingsGoal: true }));
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/saving-goals/user/${user.user_id}`
+      );
+      if (response.status === 200) {
+        setUserData((prevState) => ({
+          ...prevState,
+          savingsGoal: response.data.payload,
+        }));
       }
-    };
+      console.log("Savings goal data:", response.data);
+    } catch (error) {
+      console.error("Error fetching savings goal:", error);
+    } finally {
+      setLoading((prev) => ({ ...prev, savingsGoal: false }));
+    }
+  };
 
+  const getIncomeVsExpenses = async () => {
+    setLoading((prev) => ({ ...prev, incomeVsExpenses: true }));
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/transactions/income-vs-expenses/${
+          user.user_id
+        }?year=${selectedYear}`
+      );
+      if (response.status === 200) {
+        setUserData((prevState) => ({
+          ...prevState,
+          incomeVsExpenses: response.data.data,
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching income vs expenses:", error);
+    } finally {
+      setLoading((prev) => ({ ...prev, incomeVsExpenses: false }));
+    }
+  };
+
+  const getSpendingByFilter = async () => {
+    setLoading((prev) => ({ ...prev, spendingByFilter: true }));
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/transactions/user/${
+          user.user_id
+        }/type/expense?timeframe=${filterBy}`
+      );
+      if (response.status === 200) {
+        setUserData((prevState) => ({
+          ...prevState,
+          spendingByFilter: response.data.data,
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching spending by filter:", error);
+    } finally {
+      setLoading((prev) => ({ ...prev, spendingByFilter: false }));
+    }
+  };
+
+  const getRecentTransactions = async () => {
+    setLoading((prev) => ({ ...prev, recentTransactions: true }));
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/transactions/user/${
+          user.user_id
+        }?timeframe=${filterBy}`
+      );
+      if (response.status === 200) {
+        setUserData((prevState) => ({
+          ...prevState,
+          recentTransactions: response.data.data,
+        }));
+      }
+      console.log("Recent transactions :", response.data);
+    } catch (error) {
+      console.error("Error fetching recent transactions:", error);
+    } finally {
+      setLoading((prev) => ({ ...prev, recentTransactions: false }));
+    }
+  };
+
+  const getBudgetOverview = async () => {
+    setLoading((prev) => ({ ...prev, budgetOverview: true }));
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/budgets/user/${
+          user.user_id
+        }/progress?timeframe=${filterBy}`
+      );
+      if (response.status === 200) {
+        setUserData((prevState) => ({
+          ...prevState,
+          budgetOverview: response.data.data,
+        }));
+      }
+      console.log("Budget overview data:", response.data);
+    } catch (error) {
+      console.error("Error fetching budget overview:", error);
+    } finally {
+      setLoading((prev) => ({ ...prev, budgetOverview: false }));
+    }
+  };
+  const getTotalBalance = async () => {
+    setLoading((prev) => ({ ...prev, balance: true }));
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/account/user/total/${user.user_id}`
+      );
+      if (response.status === 200) {
+        setUserData((prev) => ({
+          ...prev,
+          totalBalance: response.data.payload.totalBalance,
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching total balance:", error);
+    } finally {
+      setLoading((prev) => ({ ...prev, balance: false }));
+    }
+  };
+
+  const refreshDashboardData = () => {
+    // Refresh monthly summary
     getMonthlySummary();
-  }, []);
+
+    // Refresh income vs expenses chart
+    getIncomeVsExpenses();
+
+    // Refresh spending by category
+    getSpendingByFilter();
+
+    // Refresh total balance if needed
+    getTotalBalance();
+
+    // Refresh budget overview
+    getBudgetOverview();
+  };
 
   useEffect(() => {
-    const getSavingsGoal = async () => {
-      setLoading((prev) => ({ ...prev, savingsGoal: true }));
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/saving-goals/user/${user.user_id}`
-        );
-        if (response.status === 200) {
-          setUserData((prevState) => ({
-            ...prevState,
-            savingsGoal: response.data.payload,
-          }));
-        }
-        console.log("Savings goal data:", response.data);
-      } catch (error) {
-        console.error("Error fetching savings goal:", error);
-      } finally {
-        setLoading((prev) => ({ ...prev, savingsGoal: false }));
-      }
-    };
+    getTotalBalance();
+  }, [user]);
 
+  useEffect(() => {
+    getMonthlySummary();
+  }, [user]);
+
+  useEffect(() => {
     getSavingsGoal();
-  }, []);
+  }, [user.user_id]);
 
   useEffect(() => {
-    const getIncomeVsExpenses = async () => {
-      setLoading((prev) => ({ ...prev, incomeVsExpenses: true }));
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/transactions/income-vs-expenses/${
-            user.user_id
-          }?year=${selectedYear}`
-        );
-        if (response.status === 200) {
-          setUserData((prevState) => ({
-            ...prevState,
-            incomeVsExpenses: response.data.data,
-          }));
-        }
-      } catch (error) {
-        console.error("Error fetching income vs expenses:", error);
-      } finally {
-        setLoading((prev) => ({ ...prev, incomeVsExpenses: false }));
-      }
-    };
-
     getIncomeVsExpenses();
   }, [selectedYear, user]);
 
   useEffect(() => {
-    const getSpendingByFilter = async () => {
-      setLoading((prev) => ({ ...prev, spendingByFilter: true }));
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/transactions/user/${
-            user.user_id
-          }/type/expense?timeframe=${filterBy}`
-        );
-        if (response.status === 200) {
-          setUserData((prevState) => ({
-            ...prevState,
-            spendingByFilter: response.data.data,
-          }));
-        }
-      } catch (error) {
-        console.error("Error fetching spending by filter:", error);
-      } finally {
-        setLoading((prev) => ({ ...prev, spendingByFilter: false }));
-      }
-    };
-
     getSpendingByFilter();
   }, [filterBy, user]);
 
   useEffect(() => {
-    const getRecentTransactions = async () => {
-      setLoading((prev) => ({ ...prev, recentTransactions: true }));
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/transactions/user/${
-            user.user_id
-          }?timeframe=${filterBy}`
-        );
-        if (response.status === 200) {
-          setUserData((prevState) => ({
-            ...prevState,
-            recentTransactions: response.data.data,
-          }));
-        }
-        console.log("Recent transactions :", response.data);
-      } catch (error) {
-        console.error("Error fetching recent transactions:", error);
-      } finally {
-        setLoading((prev) => ({ ...prev, recentTransactions: false }));
-      }
-    };
-
     getRecentTransactions();
   }, [user, filterBy, setFilterBy]);
 
   useEffect(() => {
-    const getBudgetOverview = async () => {
-      setLoading((prev) => ({ ...prev, budgetOverview: true }));
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/budgets/user/${
-            user.user_id
-          }/progress?timeframe=${filterBy}`
-        );
-        if (response.status === 200) {
-          setUserData((prevState) => ({
-            ...prevState,
-            budgetOverview: response.data.data,
-          }));
-        }
-        console.log("Budget overview data:", response.data);
-      } catch (error) {
-        console.error("Error fetching budget overview:", error);
-      } finally {
-        setLoading((prev) => ({ ...prev, budgetOverview: false }));
-      }
-    };
     getBudgetOverview();
   }, [user, filterBy, setFilterBy]);
-
-  const navigate = useNavigate();
 
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "long", day: "numeric" };
@@ -271,10 +299,173 @@ const Dashboard = ({ user }) => {
       )
     : 0;
 
+  const handleDeleteTransaction = async (id) => {
+    console.log("Delete transaction:", id);
+    toast.loading("Deleting Transaction...");
+    try {
+      const response = await axios.delete(
+        `${import.meta.env.VITE_API_URL}/transactions/${id}`
+      );
+
+      console.log("Transaction deleted successfully", response);
+      setUserData((prev) => ({
+        ...prev,
+        recentTransactions: prev.recentTransactions.filter(
+          (transaction) => transaction.transaction_id !== id
+        ),
+      }));
+
+      toast.dismiss();
+      toast.success("Transaction deleted successfully");
+
+      const modal = document.getElementById("popup-modal");
+      if (modal) {
+        modal.classList.add("hidden");
+      }
+
+      setSelectedItem(null);
+      refreshDashboardData();
+    } catch (error) {
+      console.error("Error deleting transaction:", error);
+      toast.dismiss();
+      toast.error("Failed to delete transaction");
+    } finally {
+      setTimeout(() => {
+        toast.dismiss();
+      }, 3000);
+    }
+  };
+
+  const handleEditTransaction = async (transaction, id) => {
+    console.log("Edit transaction:", transaction);
+    toast.loading("Editing Transaction...");
+    try {
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/transactions/${id}`,
+        transaction
+      );
+
+      console.log("Transaction edited successfully", response);
+      setUserData((prev) => ({
+        ...prev,
+        recentTransactions: prev.recentTransactions.map((item) =>
+          item.transaction_id === id ? { ...item, ...transaction } : item
+        ),
+      }));
+
+      toast.dismiss();
+      toast.success("Transaction edited successfully");
+
+      const modal = document.getElementById("crud-modal");
+      if (modal) {
+        modal.classList.add("hidden");
+      }
+
+      setSelectedItem(null);
+      refreshDashboardData();
+    } catch (error) {
+      console.error("Error editing transaction:", error);
+      toast.dismiss();
+      toast.error("Failed to edit transaction");
+    } finally {
+      setTimeout(() => {
+        toast.dismiss();
+      }, 3000);
+    }
+  };
+
+  const handleDeleteBudget = async (id) => {
+    console.log("Delete budget:", id);
+    toast.loading("Deleting budget...");
+    try {
+      const response = await axios.delete(
+        `${import.meta.env.VITE_API_URL}/budgets/${id}`
+      );
+
+      console.log("budget deleted successfully", response);
+      setUserData((prev) => ({
+        ...prev,
+        budgetOverview: prev.budgetOverview.filter(
+          (budget) => budget.budget_id !== id
+        ),
+      }));
+
+      toast.dismiss();
+      toast.success("budget deleted successfully");
+
+      const modal = document.getElementById("popup-modal-budget");
+      if (modal) {
+        modal.classList.add("hidden");
+      }
+
+      setSelectedItem(null);
+      refreshDashboardData();
+    } catch (error) {
+      console.error("Error deleting budget:", error);
+      toast.dismiss();
+      toast.error("Failed to delete budget");
+    } finally {
+      setTimeout(() => {
+        toast.dismiss();
+      }, 3000);
+    }
+  };
+
+  const handleEditBudget = async (budget, id) => {
+    console.log("Edit budget:", budget);
+    toast.loading("Editing budget...");
+    try {
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/budgets/${id}`,
+        budget
+      );
+
+      console.log("Budget edited successfully", response);
+      setUserData((prev) => ({
+        ...prev,
+        budgetOverview: prev.budgetOverview.map((item) =>
+          item.budget_id === id ? { ...item, ...budget } : item
+        ),
+      }));
+
+      toast.dismiss();
+      toast.success("Budget edited successfully");
+
+      const modal = document.getElementById("crud-modal-budget");
+      if (modal) {
+        modal.classList.add("hidden");
+      }
+
+      setSelectedItem(null);
+      refreshDashboardData();
+    } catch (error) {
+      console.error("Error editing budget:", error);
+      toast.dismiss();
+      toast.error("Failed to edit budget");
+    }
+  };
+
   return (
     <div className="">
-      <DeleteModal />
-      <EditTransactionModal />
+      <DeleteTransactionModal
+        item={selectedItem}
+        handleDelete={handleDeleteTransaction}
+      />
+      <EditTransactionModal
+        item={selectedItem}
+        handleSave={handleEditTransaction}
+        setSelectedItem={setSelectedItem}
+      />
+      <EditBudgetModal
+        item={selectedItem}
+        handleSave={handleEditBudget}
+        setSelectedItem={setSelectedItem}
+      />
+      <DeleteBudgetModal
+        item={selectedItem}
+        handleDelete={handleDeleteBudget}
+        setSelectedItem={setSelectedItem}
+      />
       {/* Dashboard Content */}
       <div className="px-4 sm:px-6 md:px-10 py-4">
         <h2 className="text-xl sm:text-2xl font-bold mb-3">Dashboard</h2>
@@ -325,11 +516,22 @@ const Dashboard = ({ user }) => {
               </div>
             </div>
             <button
+              onClick={() => navigate("/set-budget")}
+              className="flex items-center gap-1 bg-indigo-600 text-white px-3 py-1 rounded"
+            >
+              <span className="text-sm">Set Budget </span>
+              <div className="ml-1 w-5 h-5 flex justify-center items-center">
+                <Coins />
+              </div>
+            </button>
+            <button
               onClick={() => navigate("/add-transaction")}
               className="flex items-center gap-1 bg-indigo-600 text-white px-3 py-1 rounded"
             >
               <span className="text-sm">Add Transaction</span>
-              <span className="ml-1">+</span>
+              <div className="ml-1 w-5 h-5 flex justify-center items-center">
+                <Plus />
+              </div>
             </button>
           </div>
         </div>
@@ -546,7 +748,10 @@ const Dashboard = ({ user }) => {
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h4 className="font-medium">Recent Transactions</h4>
-              <a href="#" className="text-xs text-indigo-600">
+              <a
+                href="/settings-transactions"
+                className="text-xs text-indigo-600"
+              >
                 View All
               </a>
             </div>
@@ -563,42 +768,50 @@ const Dashboard = ({ user }) => {
                   No recent transactions available
                 </p>
               ) : (
-                userData?.recentTransactions
-                  ?.slice(0, 5)
-                  .map((transaction, index) => (
-                    <div
-                      key={transaction.transaction_id}
-                      className="flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full flex justify-center items-center bg-indigo-600">
-                          <img
-                            src={transaction.category_icon}
-                            alt={transaction.category_name}
-                          />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">
-                            {transaction.category_name}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {formatDate(transaction.date)}
-                          </p>
-                        </div>
+                userData?.recentTransactions?.slice(0, 5).map((transaction) => (
+                  <div
+                    key={transaction.transaction_id}
+                    className="flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full flex justify-center items-center bg-indigo-600">
+                        <img
+                          src={transaction.category_icon}
+                          alt={transaction.category_name}
+                        />
                       </div>
-                      <span
-                        className={`text-sm font-medium ${
-                          transaction.category_type === "income"
-                            ? "text-green-500"
-                            : "text-red-500"
-                        } flex`}
-                      >
-                        {transaction.category_type === "income" ? "+" : "-"}
-                        Rp {formatCurrency(transaction.amount)}
-                        <DropdownMore id={index} />
-                      </span>
+                      <div>
+                        <p className="text-sm font-medium">
+                          {transaction.category_name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {formatDate(transaction.date)}
+                        </p>
+                      </div>
                     </div>
-                  ))
+                    <span
+                      className={`text-sm font-medium ${
+                        transaction.transaction_type === "income"
+                          ? "text-green-500"
+                          : "text-red-500"
+                      } flex`}
+                    >
+                      {transaction.transaction_type === "income" ? "+" : "-"}
+                      Rp {formatCurrency(transaction.amount)}
+                      <div
+                        onClick={() => {
+                          setSelectedItem(transaction);
+                          console.log("Selected transaction:", transaction);
+                        }}
+                      >
+                        <DropdownMore
+                          id={transaction?.transaction_id}
+                          item={selectedItem}
+                        />
+                      </div>
+                    </span>
+                  </div>
+                ))
               )}
             </div>
           </div>
@@ -606,7 +819,7 @@ const Dashboard = ({ user }) => {
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h4 className="font-medium">Budget Overview</h4>
-              <a href="#" className="text-xs text-indigo-600">
+              <a href="/settings-budget" className="text-xs text-indigo-600">
                 View All
               </a>
             </div>
@@ -646,12 +859,12 @@ const Dashboard = ({ user }) => {
                           <div className="w-full h-2 bg-gray-200 rounded-full">
                             <div
                               className={`h-2 rounded-full ${
-                                budget.percentage_used >= 25
+                                budget.percentage_used >= 75
                                   ? "bg-green-500"
                                   : "bg-red-500"
                               }`}
                               style={{
-                                width: `${100 - budget?.percentage_used}%`,
+                                width: `${budget?.percentage_used}%`,
                               }}
                             ></div>
                           </div>
@@ -664,8 +877,17 @@ const Dashboard = ({ user }) => {
                         </div>
                       </div>
                     </div>
-                    <button className="ml-2">
-                      <ChevronRight size={20} className="text-gray-400" />
+                    <button
+                      className="ml-2"
+                      onClick={() => {
+                        setSelectedItem(budget);
+                        console.log("Selected budget:", budget);
+                      }}
+                    >
+                      <DropdownMore
+                        id={budget?.budget_id}
+                        item={selectedItem}
+                      />
                     </button>
                   </div>
                 ))}
