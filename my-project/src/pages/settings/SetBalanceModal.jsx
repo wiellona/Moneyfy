@@ -10,18 +10,17 @@ const SetBalanceModal = ({
   year,
 }) => {
   const [newBalance, setNewBalance] = useState("");
-  const [formattedBalance, setFormattedBalance] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   // Initialize the form when the modal opens with the current balance
   useEffect(() => {
     if (isOpen) {
-      setNewBalance(currentBalance.toString());
-      setFormattedBalance(formatCurrency(currentBalance));
+      setNewBalance(currentBalance);
       setError("");
     }
   }, [isOpen, currentBalance]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -31,7 +30,7 @@ const SetBalanceModal = ({
       return;
     }
 
-    const balanceValue = parseFloat(newBalance);
+    const balanceValue = parseInt(newBalance, 10);
     if (isNaN(balanceValue) || balanceValue < 0) {
       setError("Please enter a valid balance amount");
       return;
@@ -54,12 +53,6 @@ const SetBalanceModal = ({
     }
   };
 
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat("id-ID", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
-  };
   if (!isOpen) return null;
 
   const currentMonthName = new Date(year, month - 1).toLocaleString("default", {
@@ -82,12 +75,11 @@ const SetBalanceModal = ({
         <div className="mb-6 w-full">
           <p className="text-gray-600 mb-1">Current Balance</p>
           <p className="text-2xl font-bold">
-            Rp{formatCurrency(currentBalance)}
+            Rp{new Intl.NumberFormat("id-ID").format(currentBalance)}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="w-full">
-          {" "}
           <div className="mb-6">
             <label htmlFor="newBalance" className="text-gray-600 mb-1 block">
               New Balance
@@ -99,17 +91,17 @@ const SetBalanceModal = ({
               <input
                 type="text"
                 id="newBalance"
-                value={formattedBalance}
+                value={
+                  typeof newBalance === "number"
+                    ? new Intl.NumberFormat("id-ID").format(newBalance)
+                    : newBalance
+                }
                 onChange={(e) => {
-                  // Remove non-numeric characters
-                  const value = e.target.value.replace(/[^\d]/g, "");
-                  // Convert to number
-                  const numValue = value ? parseFloat(value) : 0;
-                  setNewBalance(value);
-                  setFormattedBalance(formatCurrency(numValue));
+                  const value = e.target.value.replace(/\D/g, "");
+                  setNewBalance(value ? parseInt(value, 10) : "");
                 }}
                 className="w-full pl-10 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="0.00"
+                placeholder="0"
                 required
               />
             </div>
@@ -139,7 +131,7 @@ const SetBalanceModal = ({
             src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABcAAAAXCAYAAADgKtSgAAAAAXNSR0IArs4c6QAAA0lJREFUSEu1lV1oHGUUhp8zs2napA3WUkFb9ULwpy1IG1GvFGqwrLupRPJtpRfBZNaSgPbKSosI0QtBxSuhtmlmYgW12dlQTXcWFYoipai0QRAbmgpKtVREa0WaNtnsHJ2Srbub3dUKmbuZc3jO+53vnXOERXxkEdk0hD/a1X9TrGnuSVF9BFgH3AryK+gZVf1MbCsTjA5P1hNYEz44OGh9deqnAVF9BWhrcDoV1b3WLHvGx70/q/MWwLc8sePmmF08BDwEFIEhhWNgnWrl4ukZ2taEwj2q3Ac8A9wIfK+hpvJj3onyAhXwePzZZmv55eOgm4ApCYvJ3NjbZ+opT2wfWElh5n2QLcBvMTvc+OGhkR9L+RXwpEm/puiuSAlNS9qD9976vZQYN72rbbXXz0l4/iPfO136boyxp1kRzBc4GvhuxwL4fDvOAjGxwvbc6MhEueJEt2MQMiBu4A+ny2NdXT2rZmNN0cWuRnRzkPE+jeLXlCdS6RdRfRlhf5Bx+6tb0Wl6Hy5ivwRhkPe916vjCZMeAN0Lmg18z1TCjfM1cK+G4YP5sZEvr9f/W7f2rSg2ywWQQgt/3OD7/uw/yo0zEwED310KaDW8Xs8rWmecL4AHrNDacGTswLdX4Z2dO1rCpcVLwPnAd2+ppbpRz0v5SeO8q7AdSAa+G5SUS8I4kaenA99d/n/hCeN8ADwuSkcu6x4tb0vkz7VCYW3Of+fcggtr4JZSbsI43wF3qGXdlR89MHUN/lgqfVBUe1Tpz2fd/dcLT2xzNhDyDXA28N3bK9wS7+6LWyJ54IefV9p3nhwaKvxXn0d5CdPng3SjvBpk3d0V8OglaZwJhY2IvhFkvOfK4XHTu84WO6UaTgS+N14eS5p0t6I+cGUO1nzsuxdqwe9X+BxoFtGBXMbb929+j5v0ZguNirWq8nQ+6w7XnC1Xj5fq60CtcdBlKAcLxabnPzm875fqIsaYZdO0vQDsASxUdwZZ783yvJrzPLmtd5OG1pG/x23k+WK0HECmUCZBbxORuxXWA0tALquET+UzXqZaQN1NNP87R8uip87CuILqYZG5XbWsu6DntfobbaWTk+fataitpbgisy1y8UQ0PxrdyaIu6L8AoLplJ159jXoAAAAASUVORK5CYII="
             alt="info"
             className="w-6 h-6 mt-0.5"
-          />{" "}
+          />
           <p>
             This will update your monthly balance for {currentMonthName} {year}.
             Make sure to double check the amount before saving.

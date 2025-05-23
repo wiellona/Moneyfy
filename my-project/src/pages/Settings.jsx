@@ -373,6 +373,8 @@ const Settings = () => {
         }?month=${month}&year=${year}`
       )
       .then((res) => {
+        console.log("Savings goal response:", res.data);
+
         if (res.data.success && res.data.data) {
           setSavingsGoal(
             Array.isArray(res.data.data) ? res.data.data[0] : res.data.data
@@ -387,6 +389,7 @@ const Settings = () => {
           setSavingsGoal(null);
         }
       })
+
       .catch((err) => {
         console.error("Error fetching savings goal:", err);
         setSavingsGoal(null);

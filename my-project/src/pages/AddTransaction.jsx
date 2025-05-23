@@ -6,6 +6,7 @@ import { UserContext } from "../context/AuthContext";
 
 export default function MoneyFyTransactionForm() {
   const [transactionType, setTransactionType] = useState("expense");
+  const [savingsGoal, setSavingsGoal] = useState(null);
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
   const [date, setDate] = useState("");
@@ -113,9 +114,7 @@ export default function MoneyFyTransactionForm() {
             `${import.meta.env.VITE_API_URL}/saving-goals/user/${user.user_id}`
           );
 
-          const savingsGoal = savingsResponse.data.success
-            ? savingsResponse.data.data?.[0]
-            : savingsResponse.data.payload?.[0];
+          const savingsGoal = savingsResponse.data.payload?.[0];
 
           if (savingsGoal?.goal_id) {
             // Update the current amount of the savings goal
