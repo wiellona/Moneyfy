@@ -196,14 +196,17 @@ const Dashboard = ({ user }) => {
       setLoading((prev) => ({ ...prev, recentTransactions: false }));
     }
   };
-
   const getBudgetOverview = async () => {
     setLoading((prev) => ({ ...prev, budgetOverview: true }));
     try {
+      // Get current month and year
+      const currentDate = new Date();
+      const month = currentDate.getMonth() + 1; // JavaScript months are 0-indexed
+      const year = currentDate.getFullYear();
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/budgets/user/${
           user.user_id
-        }/progress?timeframe=${filterBy}`
+        }/progress?timeframe=${filterBy}&month=${month}&year=${year}`
       );
       if (response.status === 200) {
         setUserData((prevState) => ({
@@ -479,8 +482,9 @@ const Dashboard = ({ user }) => {
       toast.error("Failed to edit budget");
     }
   };
+
   return (
-    <div className="">
+    <div className="pb-12">
       <DeleteTransactionModal
         item={selectedItem}
         handleDelete={handleDeleteTransaction}
@@ -916,10 +920,7 @@ const Dashboard = ({ user }) => {
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h4 className="font-medium">Recent Transactions</h4>
-              <a
-                href="/settings-transactions"
-                className="text-xs text-indigo-600"
-              >
+              <a href="/settings" className="text-xs text-indigo-600">
                 View All
               </a>
             </div>
@@ -956,15 +957,15 @@ const Dashboard = ({ user }) => {
                           {formatDate(transaction.date)}
                         </p>
                       </div>
-                    </div>
+                    </div>{" "}
                     <span
                       className={`text-sm font-medium ${
-                        transaction.transaction_type === "income"
-                          ? "text-green-500"
-                          : "text-red-500"
+                        transaction.transaction_type === "expense"
+                          ? "text-red-500"
+                          : "text-green-500"
                       } flex`}
                     >
-                      {transaction.transaction_type === "income" ? "+" : "-"}
+                      {transaction.transaction_type === "expense" ? "-" : "+"}
                       Rp {formatCurrency(transaction.amount)}
                       <div
                         onClick={() => {
@@ -983,11 +984,11 @@ const Dashboard = ({ user }) => {
               )}
             </div>
           </div>
-          {/* Budget Overview */}
+          {/* Budget Overview */}{" "}
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h4 className="font-medium">Budget Overview</h4>
-              <a href="/settings-budget" className="text-xs text-indigo-600">
+              <a href="/settings" className="text-xs text-indigo-600">
                 View All
               </a>
             </div>
@@ -1014,25 +1015,35 @@ const Dashboard = ({ user }) => {
                         {budget?.category_name?.charAt(0)}
                       </div>
                       <div className="flex-1">
+                        {" "}
                         <div className="flex flex-col justify-between">
                           <p className="text-sm font-medium">
                             {budget?.category_name}
                           </p>
-                          <p className="text-xs text-gray-500">
-                            Remaining: Rp{" "}
-                            {formatCurrency(budget?.remaining_amount)}
-                          </p>
+                          {budget?.remaining_amount < 0 ? (
+                            <p className="text-xs text-red-500 font-bold">
+                              OVER BUDGET🫵🏻😠
+                            </p>
+                          ) : (
+                            <p className="text-xs text-gray-500">
+                              Remaining: Rp{" "}
+                              {formatCurrency(budget?.remaining_amount)}
+                            </p>
+                          )}
                         </div>
                         <div className="mt-1 relative">
                           <div className="w-full h-2 bg-gray-200 rounded-full">
                             <div
                               className={`h-2 rounded-full ${
-                                budget.percentage_used >= 75
-                                  ? "bg-green-500"
-                                  : "bg-red-500"
+                                budget?.remaining_amount < 0
+                                  ? "bg-red-500"
+                                  : "bg-green-500"
                               }`}
                               style={{
-                                width: `${budget?.percentage_used}%`,
+                                width: `${Math.min(
+                                  100,
+                                  budget?.percentage_used || 0
+                                )}%`,
                               }}
                             ></div>
                           </div>

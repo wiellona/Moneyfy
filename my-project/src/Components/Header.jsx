@@ -14,6 +14,7 @@ const Header = ({ user }) => {
 
   const handleLogout = () => {
     logout();
+    window.location.href = "/";
   };
 
   const openProfileModal = () => {
@@ -127,7 +128,7 @@ const Header = ({ user }) => {
                   </li>
                   <li>
                     <a
-                      href="/settings-transactions"
+                      href="/settings"
                       className="block px-4 py-2 hover:bg-gray-100"
                     >
                       Settings
@@ -259,7 +260,7 @@ const Header = ({ user }) => {
                     </li>
                     <li>
                       <a
-                        href="/settings-transactions"
+                        href="/settings"
                         className="block px-4 py-2 hover:bg-gray-100"
                       >
                         Settings

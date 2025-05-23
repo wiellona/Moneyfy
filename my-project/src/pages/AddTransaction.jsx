@@ -13,6 +13,7 @@ export default function MoneyFyTransactionForm() {
   const [categoryOptions, setCategoryOptions] = useState({
     income: [],
     expense: [],
+    saving: [],
   });
   const { user } = useContext(UserContext);
 
@@ -31,10 +32,14 @@ export default function MoneyFyTransactionForm() {
         const incomeCategories = categories.filter(
           (category) => category.type === "income"
         );
+        const savingCategories = categories.filter(
+          (category) => category.type === "saving"
+        );
 
         setCategoryOptions({
           income: incomeCategories,
           expense: expenseCategories,
+          saving: savingCategories,
         });
       } catch (error) {
         console.error("Error fetching categories:", error);
@@ -42,38 +47,136 @@ export default function MoneyFyTransactionForm() {
     };
     getAllCategories();
   }, []);
-
   const handleSaveTransaction = async () => {
-    toast.loading("Editing Transaction...");
+    toast.loading("Saving Transaction...");
+
+    if (!amount || amount <= 0) {
+      toast.dismiss();
+      toast.error("Please enter a valid amount");
+      return;
+    }
+
+    if (!category) {
+      toast.dismiss();
+      toast.error("Please select a category");
+      return;
+    }
+
+    if (!date) {
+      toast.dismiss();
+      toast.error("Please select a date");
+      return;
+    }
 
     const transactionData = {
       userId: user.user_id,
       transactionType: transactionType,
-      amount: amount,
+      amount: parseFloat(amount),
       categoryId: category,
       date: date,
       note: note,
     };
 
     try {
+      // First create the transaction
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/transactions`,
         transactionData
       );
-      console.log("Transaction saved successfully:", response.data);
-      toast.dismiss();
-      toast.success("Transaction saved successfully!");
+
+      // If it's a savings-related transaction, refresh the savings goal
+      if (
+        transactionType === "saving" ||
+        (transactionType === "income" &&
+          categoryOptions.income.find(
+            (cat) =>
+              cat.category_id === category &&
+              cat.name.toLowerCase() === "savings"
+          ))
+      ) {
+        await refreshSavingsGoal();
+      }
+
+      // Handle savings goal updates for both saving type and income with savings category
+      if (
+        transactionType === "saving" ||
+        (transactionType === "income" &&
+          categoryOptions.income.find(
+            (cat) =>
+              cat.category_id === category &&
+              cat.name.toLowerCase() === "savings"
+          ))
+      ) {
+        try {
+          // First get the current savings goal
+          const savingsResponse = await axios.get(
+            `${import.meta.env.VITE_API_URL}/saving-goals/user/${user.user_id}`
+          );
+
+          const savingsGoal = savingsResponse.data.success
+            ? savingsResponse.data.data?.[0]
+            : savingsResponse.data.payload?.[0];
+
+          if (savingsGoal?.goal_id) {
+            // Update the current amount of the savings goal
+            const newAmount =
+              (savingsGoal.current_amount || 0) + parseFloat(amount);
+
+            await axios.put(
+              `${import.meta.env.VITE_API_URL}/saving-goals/${
+                savingsGoal.goal_id
+              }`,
+              {
+                current_amount: newAmount,
+              }
+            );
+
+            toast.success("Transaction saved and savings goal updated!");
+          } else {
+            toast.success(
+              "Transaction saved successfully! Create a savings goal to track your savings."
+            );
+          }
+        } catch (savingsError) {
+          console.error("Error updating savings goal:", savingsError);
+          toast.success(
+            "Transaction saved, but failed to update savings goal."
+          );
+        }
+      } else {
+        toast.success("Transaction saved successfully!");
+      }
+
+      // Reset form fields
+      setAmount("");
+      setCategory("");
+      setNote("");
+
+      // Navigate back to dashboard
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 2000);
     } catch (error) {
       console.error("Error saving transaction:", error);
-      toast.dismiss();
       toast.error("Failed to save transaction.");
     } finally {
       setTimeout(() => {
         toast.dismiss();
       }, 3000);
     }
+  };
 
-    console.log("Transaction Data:", transactionData);
+  const refreshSavingsGoal = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/saving-goals/user/${user.user_id}`
+      );
+      if (response.data.payload && response.data.payload.length > 0) {
+        setSavingsGoal(response.data.payload[0]);
+      }
+    } catch (error) {
+      console.error("Error refreshing savings goal:", error);
+    }
   };
 
   return (
@@ -104,11 +207,10 @@ export default function MoneyFyTransactionForm() {
           {/* Form Card */}
           <div className="bg-white rounded-3xl shadow-md p-6 md:p-8">
             <h1 className="text-2xl font-bold text-center mb-6">
-              Edit Transaction
-            </h1>
-
+              Add Transaction
+            </h1>{" "}
             {/* Transaction Type Selector */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-3 gap-4 mb-6">
               <button
                 type="button"
                 className={`flex items-center justify-center gap-2 py-3 px-4 rounded-lg ${
@@ -136,10 +238,23 @@ export default function MoneyFyTransactionForm() {
                   setCategory("");
                 }}
               >
-                Mark as Income
+                Income
+              </button>
+              <button
+                type="button"
+                className={`flex items-center justify-center gap-2 py-3 px-4 rounded-lg ${
+                  transactionType === "saving"
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-100 text-gray-700"
+                }`}
+                onClick={() => {
+                  setTransactionType("saving");
+                  setCategory("");
+                }}
+              >
+                Saving
               </button>
             </div>
-
             {/* Form Fields */}
             <form
               onSubmit={(e) => {
@@ -213,6 +328,18 @@ export default function MoneyFyTransactionForm() {
                         {transactionType === "expense" && (
                           <>
                             {categoryOptions?.expense.map((option) => (
+                              <option
+                                key={option?.category_id}
+                                value={option?.category_id}
+                              >
+                                {option.name}
+                              </option>
+                            ))}
+                          </>
+                        )}
+                        {transactionType === "saving" && (
+                          <>
+                            {categoryOptions?.saving.map((option) => (
                               <option
                                 key={option?.category_id}
                                 value={option?.category_id}
@@ -297,6 +424,9 @@ export default function MoneyFyTransactionForm() {
                   <button
                     type="button"
                     className="text-gray-600 hover:text-gray-800"
+                    onClick={() => {
+                      window.location.href = "/dashboard";
+                    }}
                   >
                     Cancel
                   </button>
