@@ -69,10 +69,10 @@ const Header = ({ user }) => {
                     openProfileModal();
                   }}
                 >
-                  {user.profileImage ? (
+                  {user.profile_img_url ? (
                     <img
                       className="w-10 h-10 me-2 rounded-full object-cover cursor-pointer"
-                      src={user.profileImage}
+                      src={user.profile_img_url}
                       alt="user avatar"
                     />
                   ) : (
