@@ -957,15 +957,15 @@ const Dashboard = ({ user }) => {
                           {formatDate(transaction.date)}
                         </p>
                       </div>
-                    </div>
+                    </div>{" "}
                     <span
                       className={`text-sm font-medium ${
-                        transaction.transaction_type === "income"
-                          ? "text-green-500"
-                          : "text-red-500"
+                        transaction.transaction_type === "expense"
+                          ? "text-red-500"
+                          : "text-green-500"
                       } flex`}
                     >
-                      {transaction.transaction_type === "income" ? "+" : "-"}
+                      {transaction.transaction_type === "expense" ? "-" : "+"}
                       Rp {formatCurrency(transaction.amount)}
                       <div
                         onClick={() => {

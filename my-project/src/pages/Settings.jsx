@@ -511,32 +511,41 @@ const Settings = () => {
         setTransactionsData([]);
       })
       .finally(() => setLoadingTransactions(false));
-  }, [user, monthIndex, year, filter]);
-  // Fetch current month's balance
+  }, [user, monthIndex, year, filter]); // Fetch current month's balance
   useEffect(() => {
     if (!user?.user_id) return;
 
-    const month = monthIndex + 1;
-    axios
-      .get(
-        `${import.meta.env.VITE_API_URL}/budgets/balance/${
-          user.user_id
-        }?month=${month}&year=${year}`
-      )
-      .then((response) => {
-        // Check for data structure (may vary between different API responses)
-        if (response.data.success) {
-          setCurrentBalance(response.data.data?.balance || 0);
-        } else if (response.data.payload) {
-          setCurrentBalance(response.data.payload?.balance || 0);
+    const fetchMonthlyBalance = async () => {
+      try {
+        // Get all the user's accounts
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/account/user/${user.user_id}`
+        );
+
+        // Get accounts from response
+        const accounts = response.data.success
+          ? response.data.data
+          : response.data.payload;
+
+        if (accounts && accounts.length > 0) {
+          // Calculate total balance from all accounts
+          const totalBalance = accounts.reduce(
+            (sum, account) => sum + (account.balance || 0),
+            0
+          );
+
+          setCurrentBalance(totalBalance);
         } else {
           setCurrentBalance(0);
         }
-      })
-      .catch((error) => {
-        console.error("Error fetching balance:", error);
+      } catch (error) {
+        console.error("Error fetching accounts balance:", error);
+        toast.error("Failed to load monthly balance");
         setCurrentBalance(0);
-      });
+      }
+    };
+
+    fetchMonthlyBalance();
   }, [user, monthIndex, year]);
   // Modal handlers
   const handleOpenSavingsGoalModal = () => setIsSavingsGoalModalOpen(true);
@@ -597,13 +606,55 @@ const Settings = () => {
     if (!user?.user_id || !savingsGoal?.goal_id) return;
 
     try {
+      // Store the current amount before claiming
+      const claimedAmount = savingsGoal.current_amount || 0;
+
       try {
+        // Claim the savings
         await axios.post(
           `${import.meta.env.VITE_API_URL}/saving-goals/${
             savingsGoal.goal_id
           }/claim`
         );
-        toast.success("Savings claimed successfully");
+
+        // Now, update the account balance by adding the claimed amount
+        // First, get all accounts
+        const accountsResponse = await axios.get(
+          `${import.meta.env.VITE_API_URL}/account/user/${user.user_id}`
+        );
+
+        const accounts = accountsResponse.data.success
+          ? accountsResponse.data.data
+          : accountsResponse.data.payload;
+
+        if (accounts && accounts.length > 0) {
+          // Update the first account with the new balance
+          const mainAccount = accounts[0];
+          const newBalance = (mainAccount.balance || 0) + claimedAmount;
+
+          await axios.put(
+            `${import.meta.env.VITE_API_URL}/account/${mainAccount.account_id}`,
+            {
+              balance: newBalance,
+            }
+          );
+
+          // Update the local state with the new balance
+          setCurrentBalance(newBalance);
+        } else {
+          // No accounts found, create one
+          await axios.post(`${import.meta.env.VITE_API_URL}/account`, {
+            user_id: user.user_id,
+            name: "Main Account",
+            balance: claimedAmount,
+            type: "cash",
+          });
+
+          // Update the local state with the new balance
+          setCurrentBalance(claimedAmount);
+        }
+
+        toast.success("Savings claimed and added to your balance successfully");
       } catch (claimError) {
         // If the /claim endpoint fails, fall back to updating the goal
         await axios.put(
@@ -648,8 +699,6 @@ const Settings = () => {
     if (!user?.user_id) return;
 
     try {
-      const month = monthIndex + 1;
-
       // Use a number value for balance
       const balanceValue = parseFloat(newBalance);
 
@@ -657,16 +706,49 @@ const Settings = () => {
         throw new Error("Invalid balance value");
       }
 
-      // Try to update balance
-      await axios.post(`${import.meta.env.VITE_API_URL}/budgets/balance`, {
-        user_id: user.user_id,
-        month,
-        year,
-        balance: balanceValue,
-      }); // Update local state with the new balance
-      setCurrentBalance(balanceValue);
+      // First get the user's accounts
+      const accountsResponse = await axios.get(
+        `${import.meta.env.VITE_API_URL}/account/user/${user.user_id}`
+      );
+
+      const accounts = accountsResponse.data.success
+        ? accountsResponse.data.data
+        : accountsResponse.data.payload;
+
+      if (!accounts || accounts.length === 0) {
+        // No accounts found, let's create one
+        const newAccount = await axios.post(
+          `${import.meta.env.VITE_API_URL}/account`,
+          {
+            user_id: user.user_id,
+            name: "Main Account",
+            balance: balanceValue,
+            type: "cash",
+          }
+        );
+
+        toast.success("New account created with the specified balance");
+        setCurrentBalance(balanceValue);
+      } else {
+        // Update the first account with the new balance
+        const mainAccount = accounts[0];
+        const response = await axios.put(
+          `${import.meta.env.VITE_API_URL}/account/${mainAccount.account_id}`,
+          {
+            balance: balanceValue,
+          }
+        );
+
+        if (response.status === 200 || response.status === 201) {
+          // Update local state with the new balance
+          setCurrentBalance(balanceValue);
+          toast.success("Monthly balance updated successfully");
+        } else {
+          toast.error("Failed to update balance. Please try again.");
+        }
+      }
+
       handleCloseBalanceModal();
-      toast.success("Balance saved successfully");
     } catch (err) {
       console.error("Error saving balance:", err);
       toast.error("Failed to save balance. Please try again.");
@@ -870,12 +952,12 @@ const Settings = () => {
                   </div>{" "}
                   <span
                     className={`text-sm font-medium ${
-                      transaction.transaction_type === "income"
-                        ? "text-green-500"
-                        : "text-red-500"
+                      transaction.transaction_type === "expense"
+                        ? "text-red-500"
+                        : "text-green-500"
                     } flex items-center`}
                   >
-                    {transaction.transaction_type === "income" ? "+" : "-"}
+                    {transaction.transaction_type === "expense" ? "-" : "+"}
                     Rp {formatCurrency(transaction.amount)}
                     <div
                       onClick={() => {
@@ -963,9 +1045,12 @@ const Settings = () => {
 
           {/* Summary Panel (stays the same regardless of filter) */}
           <div className="space-y-6">
+            {" "}
             <MonthlyBalanceCard
               onEditClick={handleOpenBalanceModal}
               balance={currentBalance}
+              month={monthIndex + 1}
+              year={year}
             />
             <TotalBalanceCard />
             <SavingsGoalCard
@@ -993,13 +1078,15 @@ const Settings = () => {
             />
           </div>
         </div>
-      </div>
+      </div>{" "}
       <SetBalanceModal
         isOpen={isBalanceModalOpen}
         onClose={handleCloseBalanceModal}
         onSave={handleSaveBalance}
         currentBalance={currentBalance}
-      />
+        month={monthIndex + 1}
+        year={year}
+      />{" "}
       <SetSavingsGoalModal
         isOpen={isSavingsGoalModalOpen}
         onClose={handleCloseSavingsGoalModal}
@@ -1021,6 +1108,8 @@ const Settings = () => {
               )
             : 0
         }
+        month={monthIndex + 1}
+        year={year}
       />
       <DeleteTransactionModal
         item={selectedItem}

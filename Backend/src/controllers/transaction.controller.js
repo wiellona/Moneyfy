@@ -1,4 +1,6 @@
 const transactionRepository = require("../repository/transaction.repository");
+const savingGoalRepository = require("../repository/saving_goals.repository"); // Corrected import path
+const { getCategoryById } = require("../repository/categories.repository");
 
 // Get all transactions
 const getAllTransactions = async (req, res) => {
@@ -299,7 +301,44 @@ const createTransaction = async (req, res) => {
       note || "",
       transactionType,
       goalId
-    );
+    ); // After creating transaction, update savings goal if it's a savings transaction
+    // Either when transaction_type is "saving" or when it's "income" with savings category
+    if (transactionType === "saving" || transactionType === "income") {
+      try {
+        let shouldUpdateSavingsGoal = false;
+
+        // For income transactions, check if category is savings
+        if (transactionType === "income") {
+          const category = await getCategoryById(categoryId);
+          shouldUpdateSavingsGoal =
+            category && category.name.toLowerCase() === "savings";
+        } else if (transactionType === "saving") {
+          // For saving type transactions, always update
+          shouldUpdateSavingsGoal = true;
+        }
+
+        if (shouldUpdateSavingsGoal) {
+          // Get current savings goal for user
+          const savingsGoals =
+            await savingGoalRepository.getSavingGoalsByUserId(userId);
+
+          // If there's an active savings goal, update it
+          if (savingsGoals && savingsGoals.length > 0) {
+            const activeGoal = savingsGoals[0]; // Get the most recent savings goal
+            const newAmount =
+              (activeGoal.current_amount || 0) + parseFloat(amount);
+            await savingGoalRepository.updateSavingGoal(activeGoal.goal_id, {
+              current_amount: newAmount,
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error updating savings goal after transaction:", error);
+        // Log the full error for debugging
+        console.error("Full error details:", error.stack);
+        // Don't throw the error - we still want the transaction to be created
+      }
+    }
 
     res.status(201).json({
       success: true,
@@ -307,9 +346,11 @@ const createTransaction = async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating transaction:", error);
+    console.error("Error stack:", error.stack);
     res.status(500).json({
       success: false,
       message: "Failed to create transaction",
+      error: error.message, // Add error message to response for debugging
     });
   }
 };
@@ -363,6 +404,59 @@ const updateTransaction = async (req, res) => {
       transactionType || existingTransaction.transaction_type,
       goalId !== undefined ? goalId : existingTransaction.goal_id
     );
+
+    // Update savings goal if necessary
+    const finalTransactionType =
+      transactionType || existingTransaction.transaction_type;
+    if (
+      finalTransactionType === "saving" ||
+      finalTransactionType === "income"
+    ) {
+      try {
+        let shouldUpdateSavingsGoal = false;
+        const finalCategoryId = categoryId || existingTransaction.category_id;
+        const finalAmount =
+          amount !== undefined ? amount : existingTransaction.amount;
+        const amountDiff = finalAmount - existingTransaction.amount;
+
+        // Only proceed if amount changed
+        if (amountDiff !== 0) {
+          // For income transactions, check if category is savings
+          if (finalTransactionType === "income") {
+            const category = await getCategoryById(finalCategoryId);
+            shouldUpdateSavingsGoal =
+              category && category.name.toLowerCase() === "savings";
+          } else if (finalTransactionType === "saving") {
+            // For saving type transactions, always update
+            shouldUpdateSavingsGoal = true;
+          }
+
+          if (shouldUpdateSavingsGoal) {
+            // Get current savings goal for user
+            const savingsGoals =
+              await savingGoalRepository.getSavingGoalsByUserId(
+                updatedTransaction.user_id
+              );
+
+            // If there's an active savings goal, update it
+            if (savingsGoals && savingsGoals.length > 0) {
+              const activeGoal = savingsGoals[0]; // Get the most recent savings goal
+              const newAmount = (activeGoal.current_amount || 0) + amountDiff;
+              await savingGoalRepository.updateSavingGoal(activeGoal.goal_id, {
+                current_amount: newAmount,
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error(
+          "Error updating savings goal after transaction update:",
+          error
+        );
+        console.error("Full error details:", error.stack);
+        // Don't throw the error - we still want the transaction update to be saved
+      }
+    }
 
     res.status(200).json({
       success: true,
