@@ -71,9 +71,9 @@ function EditTransactionModal({ item, handleSave, setSelectedItem }) {
   }, [item]);
   const handleSaveTransaction = () => {
     const updatedTransaction = {
-      transactionType: transactionType,
+      transaction_type: transactionType,
       amount: amount,
-      categoryId: category,
+      category_id: category,
       date: date,
       note: note,
     };
@@ -81,7 +81,7 @@ function EditTransactionModal({ item, handleSave, setSelectedItem }) {
     console.log("Saving transaction with category_id:", category);
     console.log("Full updated transaction:", updatedTransaction);
 
-    handleSave(updatedTransaction, item?.transaction_id);
+    handleSave(updatedTransaction, item?.transaction_id || item?.id);
   };
 
   return (

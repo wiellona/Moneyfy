@@ -292,6 +292,58 @@ const getBudgetProgressByUserId = async (userId, timeframe) => {
   return result.rows;
 };
 
+const getBudgetProgressByUserIdAndMonth = async (userId, month, year) => {
+  try {
+    // Create date filters for the specific month and year
+    const startOfMonth = `${year}-${month.toString().padStart(2, "0")}-01`;
+    const nextMonth =
+      month === 12
+        ? `${year + 1}-01-01`
+        : `${year}-${(month + 1).toString().padStart(2, "0")}-01`;
+    const endOfMonthDate = new Date(nextMonth);
+    endOfMonthDate.setDate(endOfMonthDate.getDate() - 1);
+    const endOfMonth = endOfMonthDate.toISOString().split("T")[0];
+
+    const result = await query(
+      `SELECT 
+              b.budget_id, 
+              b.category_id,
+              b.amount as budget_amount, 
+              COALESCE(SUM(t.amount), 0) as spent_amount,
+              b.amount - COALESCE(SUM(t.amount), 0) as remaining_amount,
+              CASE 
+                WHEN b.amount = 0 THEN 0
+                ELSE ROUND((COALESCE(SUM(t.amount), 0) * 100.0 / b.amount))
+              END as percentage_used,
+              c.name as category_name, 
+              c.type as category_type,
+              c.icon_url as category_icon,
+              b.start_date, 
+              b.end_date
+       FROM budgets b
+       LEFT JOIN categories c ON b.category_id = c.category_id
+       LEFT JOIN transactions t ON 
+          b.user_id = t.user_id AND
+          b.category_id = t.category_id AND
+          t.date BETWEEN b.start_date AND b.end_date AND
+          t.transaction_type = 'expense'
+       WHERE b.user_id = $1 
+       AND (
+         (EXTRACT(MONTH FROM b.start_date) = $2 AND EXTRACT(YEAR FROM b.start_date) = $3) OR
+         (EXTRACT(MONTH FROM b.end_date) = $2 AND EXTRACT(YEAR FROM b.end_date) = $3) OR
+         (b.start_date <= $4 AND b.end_date >= $5)
+       )
+       GROUP BY b.budget_id, b.category_id, b.amount, c.name, c.type, c.icon_url, b.start_date, b.end_date
+       ORDER BY b.start_date DESC`,
+      [userId, month, year, startOfMonth, endOfMonth]
+    );
+    return result.rows;
+  } catch (error) {
+    console.error("Error in getBudgetProgressByUserIdAndMonth:", error);
+    throw error;
+  }
+};
+
 module.exports = {
   getAllBudgets,
   getBudgetById,
@@ -306,4 +358,5 @@ module.exports = {
   getBudgetsByMonth,
   getBudgetsByCategory,
   getBudgetProgressByUserId,
+  getBudgetProgressByUserIdAndMonth,
 };

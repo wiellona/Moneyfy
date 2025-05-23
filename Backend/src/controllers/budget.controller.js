@@ -458,12 +458,42 @@ const deleteBudget = async (req, res) => {
 const getBudgetProgressByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { timeframe } = req.query;
+    const { timeframe, month, year } = req.query;
 
-    const budgets = await budgetRepository.getBudgetProgressByUserId(
-      userId,
-      timeframe
-    );
+    // If month and year are provided, use them for filtering
+    let budgets;
+    if (month && year) {
+      const monthNum = parseInt(month);
+      const yearNum = parseInt(year);
+
+      // Validate month (1-12)
+      if (isNaN(monthNum) || monthNum < 1 || monthNum > 12) {
+        return res.status(400).json({
+          success: false,
+          message: "Month must be a number between 1 and 12",
+        });
+      }
+
+      // Validate year
+      if (isNaN(yearNum) || yearNum < 2000 || yearNum > 2100) {
+        return res.status(400).json({
+          success: false,
+          message: "Year must be a valid number",
+        });
+      }
+
+      budgets = await budgetRepository.getBudgetProgressByUserIdAndMonth(
+        userId,
+        monthNum,
+        yearNum
+      );
+    } else {
+      // Fall back to timeframe if month and year aren't provided
+      budgets = await budgetRepository.getBudgetProgressByUserId(
+        userId,
+        timeframe
+      );
+    }
 
     res.status(200).json({
       success: true,

@@ -111,10 +111,28 @@ const SetBudget = () => {
   }, []);
 
   return (
-    <div className="max-w-md mx-auto pb-10">
-      <h1 className="text-2xl font-bold mb-6 text-center">Set Budget</h1>
+    <div className="max-w-md mx-auto pb-24 pt-24">
+      <div className="mb-6">
+        <a href="/dashboard">
+          <button className="p-2 rounded-full bg-white shadow-sm hover:bg-gray-50">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+        </a>
+      </div>
 
       <div className="bg-white p-6 rounded-lg shadow-sm">
+        <h1 className="text-2xl font-bold mb-6 text-center">Set Budget</h1>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label
@@ -216,7 +234,7 @@ const SetBudget = () => {
             <button
               type="button"
               className="px-4 py-2 text-gray-700 hover:text-gray-900"
-              // onClick={handleClose}
+              onClick={() => navigate("/dashboard")}
             >
               Cancel
             </button>
