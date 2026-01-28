@@ -72,6 +72,8 @@ const Dashboard = ({ user }) => {
     spendingByFilter: [],
     recentTransactions: [],
     savingsGoal: [],
+    totalSavings: 0,
+    monthlyBalance: 0,
   });
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedItem, setSelectedItem] = useState(null);
@@ -93,7 +95,7 @@ const Dashboard = ({ user }) => {
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/transactions/summary/${
           user.user_id
-        }?period=month`
+        }?period=month`,
       );
       if (response.status === 200) {
         setUserData((prevState) => ({
@@ -117,7 +119,7 @@ const Dashboard = ({ user }) => {
     setLoading((prev) => ({ ...prev, savingsGoal: true }));
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/saving-goals/user/${user.user_id}`
+        `${import.meta.env.VITE_API_URL}/saving-goals/user/${user.user_id}`,
       );
       if (response.status === 200) {
         setUserData((prevState) => ({
@@ -139,7 +141,7 @@ const Dashboard = ({ user }) => {
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/transactions/income-vs-expenses/${
           user.user_id
-        }?year=${selectedYear}`
+        }?year=${selectedYear}`,
       );
       if (response.status === 200) {
         setUserData((prevState) => ({
@@ -160,7 +162,7 @@ const Dashboard = ({ user }) => {
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/transactions/user/${
           user.user_id
-        }/type/expense?timeframe=${filterBy}`
+        }/type/expense?timeframe=${filterBy}`,
       );
       if (response.status === 200) {
         setUserData((prevState) => ({
@@ -181,7 +183,7 @@ const Dashboard = ({ user }) => {
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/transactions/user/${
           user.user_id
-        }?timeframe=${filterBy}`
+        }?timeframe=${filterBy}`,
       );
       if (response.status === 200) {
         setUserData((prevState) => ({
@@ -206,7 +208,7 @@ const Dashboard = ({ user }) => {
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/budgets/user/${
           user.user_id
-        }/progress?timeframe=${filterBy}&month=${month}&year=${year}`
+        }/progress?timeframe=${filterBy}&month=${month}&year=${year}`,
       );
       if (response.status === 200) {
         setUserData((prevState) => ({
@@ -225,7 +227,7 @@ const Dashboard = ({ user }) => {
     setLoading((prev) => ({ ...prev, balance: true }));
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/account/user/total/${user.user_id}`
+        `${import.meta.env.VITE_API_URL}/account/user/total/${user.user_id}`,
       );
       if (response.status === 200) {
         setUserData((prev) => ({
@@ -255,6 +257,9 @@ const Dashboard = ({ user }) => {
 
     // Refresh budget overview
     getBudgetOverview();
+
+    getTotalSavings();
+    getMonthlyBalance();
   };
 
   useEffect(() => {
@@ -305,7 +310,7 @@ const Dashboard = ({ user }) => {
   const filteredSpendingByCategory = userData?.spendingByFilter?.reduce(
     (acc, item) => {
       const existingItem = acc.find(
-        (i) => i.category_name === item.category_name
+        (i) => i.category_name === item.category_name,
       );
 
       if (existingItem) {
@@ -316,12 +321,12 @@ const Dashboard = ({ user }) => {
 
       return acc;
     },
-    []
+    [],
   );
 
   const totalSpending = filteredSpendingByCategory?.reduce(
     (acc, item) => acc + item.amount,
-    0
+    0,
   );
 
   const goalsPercent = userData?.savingsGoal[0]?.current_amount
@@ -333,7 +338,7 @@ const Dashboard = ({ user }) => {
   const savingsGoalDaysLeft = userData?.savingsGoal[0]?.end_date
     ? Math.ceil(
         (new Date(userData?.savingsGoal[0]?.end_date) - new Date()) /
-          (1000 * 60 * 60 * 24)
+          (1000 * 60 * 60 * 24),
       )
     : 0;
 
@@ -342,14 +347,14 @@ const Dashboard = ({ user }) => {
     toast.loading("Deleting Transaction...");
     try {
       const response = await axios.delete(
-        `${import.meta.env.VITE_API_URL}/transactions/${id}`
+        `${import.meta.env.VITE_API_URL}/transactions/${id}`,
       );
 
       console.log("Transaction deleted successfully", response);
       setUserData((prev) => ({
         ...prev,
         recentTransactions: prev.recentTransactions.filter(
-          (transaction) => transaction.transaction_id !== id
+          (transaction) => transaction.transaction_id !== id,
         ),
       }));
 
@@ -380,14 +385,14 @@ const Dashboard = ({ user }) => {
     try {
       const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/transactions/${id}`,
-        transaction
+        transaction,
       );
 
       console.log("Transaction edited successfully", response);
       setUserData((prev) => ({
         ...prev,
         recentTransactions: prev.recentTransactions.map((item) =>
-          item.transaction_id === id ? { ...item, ...transaction } : item
+          item.transaction_id === id ? { ...item, ...transaction } : item,
         ),
       }));
 
@@ -417,14 +422,14 @@ const Dashboard = ({ user }) => {
     toast.loading("Deleting budget...");
     try {
       const response = await axios.delete(
-        `${import.meta.env.VITE_API_URL}/budgets/${id}`
+        `${import.meta.env.VITE_API_URL}/budgets/${id}`,
       );
 
       console.log("budget deleted successfully", response);
       setUserData((prev) => ({
         ...prev,
         budgetOverview: prev.budgetOverview.filter(
-          (budget) => budget.budget_id !== id
+          (budget) => budget.budget_id !== id,
         ),
       }));
 
@@ -455,14 +460,14 @@ const Dashboard = ({ user }) => {
     try {
       const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/budgets/${id}`,
-        budget
+        budget,
       );
 
       console.log("Budget edited successfully", response);
       setUserData((prev) => ({
         ...prev,
         budgetOverview: prev.budgetOverview.map((item) =>
-          item.budget_id === id ? { ...item, ...budget } : item
+          item.budget_id === id ? { ...item, ...budget } : item,
         ),
       }));
 
@@ -480,6 +485,43 @@ const Dashboard = ({ user }) => {
       console.error("Error editing budget:", error);
       toast.dismiss();
       toast.error("Failed to edit budget");
+    }
+  };
+
+  const getTotalSavings = async () => {
+    setLoading((prev) => ({ ...prev, balance: true }));
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/account/user/total-savings/${user.user_id}`,
+      );
+      setUserData((prev) => ({
+        ...prev,
+        totalSavings:
+          res.data.payload?.total_savings ?? res.data.data?.total_savings ?? 0,
+      }));
+    } finally {
+      setLoading((prev) => ({ ...prev, balance: false }));
+    }
+  };
+
+  const getMonthlyBalance = async () => {
+    setLoading((prev) => ({ ...prev, monthlySummary: true }));
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/account/user/${user.user_id}/monthly-balance?month=${month}&year=${year}`,
+      );
+      setUserData((prev) => ({
+        ...prev,
+        monthlyBalance:
+          res.data.payload?.monthly_balance ??
+          res.data.data?.monthly_balance ??
+          0,
+      }));
+    } finally {
+      setLoading((prev) => ({ ...prev, monthlySummary: false }));
     }
   };
 
@@ -607,12 +649,13 @@ const Dashboard = ({ user }) => {
               whileHover={{ scale: 1.02 }}
               transition={{ type: "spring", stiffness: 400 }}
             >
-              <p className="text-xs text-gray-500 mb-1">Total Balance</p>
+              <p className="text-xs text-gray-500 mb-1">Total Savings</p>
               <h4 className="text-xl font-semibold mb-1">
                 Rp{" "}
                 <CountUp
                   end={userData.totalBalance}
                   separator=","
+                  decimals={2}
                   duration={1}
                 />
               </h4>
@@ -864,8 +907,8 @@ const Dashboard = ({ user }) => {
                                 index % 3 === 0
                                   ? "#6366F1"
                                   : index % 3 === 1
-                                  ? "#8B5CF6"
-                                  : "#EC4899",
+                                    ? "#8B5CF6"
+                                    : "#EC4899",
                             }}
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
@@ -1042,7 +1085,7 @@ const Dashboard = ({ user }) => {
                               style={{
                                 width: `${Math.min(
                                   100,
-                                  budget?.percentage_used || 0
+                                  budget?.percentage_used || 0,
                                 )}%`,
                               }}
                             ></div>

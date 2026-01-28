@@ -17,15 +17,15 @@ const TotalBalanceCard = () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/account/user/total/${user.user_id}`
+        `${import.meta.env.VITE_API_URL}/account/user/total/${user.user_id}`,
       );
       if (response.status === 200) {
         setTotalBalance(response.data.payload.totalBalance);
         setError(null);
       }
     } catch (err) {
-      console.error("Error fetching total balance:", err);
-      setError("Failed to load total balance");
+      console.error("Error fetching total savings:", err);
+      setError("Failed to load total savings");
     } finally {
       setLoading(false);
     }
@@ -38,7 +38,7 @@ const TotalBalanceCard = () => {
   return (
     <div className="bg-white p-6 rounded-xl shadow">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-gray-500">Total Balance</span>
+        <span className="text-gray-500">Total Savings</span>
         <span className="text-sm text-gray-500">Auto-calculated</span>
       </div>
       {loading ? (
@@ -52,7 +52,7 @@ const TotalBalanceCard = () => {
         </p>
       )}
       <div className="mt-2 text-xs text-gray-500">
-        Total balance is the sum of your monthly balance and claimed savings. It
+        Total Savings is the sum of your monthly balance and claimed savings. It
         cannot be edited directly.
       </div>
     </div>

@@ -14,7 +14,7 @@ router.post("/login", controller.userLogin);
 router.post(
   "/profile-image",
   upload.single("profileImage"),
-  controller.uploadProfileImage
+  controller.uploadProfileImage,
 );
 
 // Get user by email

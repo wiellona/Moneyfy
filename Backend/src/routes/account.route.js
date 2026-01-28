@@ -17,7 +17,13 @@ router.put("/:accountId", controller.updateAccount);
 // Delete an account
 router.delete("/:accountId", controller.deleteAccount);
 
-//Total balance
+//Total balance (legacy)
 router.get("/user/total/:userId", controller.getAccountTotalBalance);
+
+// Total savings for a user
+router.get("/user/:userId/total-savings", controller.getTotalSavings);
+
+// Monthly balance for a user
+router.get("/user/:userId/monthly-balance", controller.getMonthlyBalance);
 
 module.exports = router;

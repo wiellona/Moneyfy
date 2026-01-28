@@ -1,21 +1,18 @@
 const accountRepository = require("../repository/account.repository");
+const budgetRepository = require("../repository/budget.repository");
+const transactionRepository = require("../repository/transaction.repository");
 const baseResponse = require("../utils/baseResponse.util");
 
 exports.createAccount = async (req, res) => {
   try {
     // Validate input
-    if (
-      !req.body.user_id ||
-      !req.body.name ||
-      req.body.balance === undefined ||
-      !req.body.type
-    ) {
+    if (!req.body.user_id || !req.body.name || req.body.type === undefined) {
       return baseResponse(
         res,
         false,
         400,
-        "All fields are required (user_id, name, balance, type)",
-        null
+        "All fields are required (user_id, name, type)",
+        null,
       );
     }
 
@@ -27,19 +24,26 @@ exports.createAccount = async (req, res) => {
         false,
         400,
         `Invalid account type. Must be one of: ${validTypes.join(", ")}`,
-        null
+        null,
       );
     }
 
     // Create account
-    const account = await accountRepository.createAccount(req.body);
+    const accountPayload = {
+      user_id: req.body.user_id,
+      name: req.body.name,
+      total_savings: req.body.total_savings ?? 0,
+      type: req.body.type,
+    };
+
+    const account = await accountRepository.createAccount(accountPayload);
 
     return baseResponse(
       res,
       true,
       201,
       "Account created successfully",
-      account
+      account,
     );
   } catch (error) {
     console.error("Error creating account:", error);
@@ -62,7 +66,7 @@ exports.getAccountsByUserId = async (req, res) => {
       true,
       200,
       "Accounts retrieved successfully",
-      accounts
+      accounts,
     );
   } catch (error) {
     console.error("Error getting accounts:", error);
@@ -89,7 +93,7 @@ exports.getAccountById = async (req, res) => {
       true,
       200,
       "Account retrieved successfully",
-      account
+      account,
     );
   } catch (error) {
     console.error("Error getting account:", error);
@@ -121,7 +125,7 @@ exports.updateAccount = async (req, res) => {
           false,
           400,
           `Invalid account type. Must be one of: ${validTypes.join(", ")}`,
-          null
+          null,
         );
       }
     }
@@ -129,16 +133,16 @@ exports.updateAccount = async (req, res) => {
     // Update account with provided fields or keep existing values
     const updatedAccountData = {
       name: req.body.name || existingAccount.name,
-      balance:
-        req.body.balance !== undefined
-          ? req.body.balance
-          : existingAccount.balance,
+      total_savings:
+        req.body.total_savings !== undefined
+          ? req.body.total_savings
+          : existingAccount.total_savings,
       type: req.body.type || existingAccount.type,
     };
 
     const updatedAccount = await accountRepository.updateAccount(
       accountId,
-      updatedAccountData
+      updatedAccountData,
     );
 
     return baseResponse(
@@ -146,7 +150,7 @@ exports.updateAccount = async (req, res) => {
       true,
       200,
       "Account updated successfully",
-      updatedAccount
+      updatedAccount,
     );
   } catch (error) {
     console.error("Error updating account:", error);
@@ -176,7 +180,7 @@ exports.deleteAccount = async (req, res) => {
       true,
       200,
       "Account deleted successfully",
-      deletedAccount
+      deletedAccount,
     );
   } catch (error) {
     console.error("Error deleting account:", error);
@@ -200,13 +204,13 @@ exports.getAccountTotalBalance = async (req, res) => {
         false,
         404,
         "No accounts found for this user",
-        null
+        null,
       );
     }
 
     const totalBalance = accounts.reduce(
-      (acc, account) => acc + account.balance,
-      0
+      (acc, account) => acc + (account.total_savings || 0),
+      0,
     );
 
     return baseResponse(
@@ -214,10 +218,58 @@ exports.getAccountTotalBalance = async (req, res) => {
       true,
       200,
       "Total balance retrieved successfully",
-      { totalBalance }
+      { totalBalance },
     );
   } catch (error) {
     console.error("Error getting total balance:", error);
+    return baseResponse(res, false, 500, "Internal server error", null);
+  }
+};
+
+exports.getTotalSavings = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const row = await accountRepository.getTotalSavingsByUserId(userId);
+    return baseResponse(
+      res,
+      true,
+      200,
+      "Total savings retrieved successfully",
+      { total_savings: Number(row.total_savings) },
+    );
+  } catch (error) {
+    console.error("Error getting total savings:", error);
+    return baseResponse(res, false, 500, "Internal server error", null);
+  }
+};
+
+exports.getMonthlyBalance = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const month = parseInt(req.query.month) || new Date().getMonth() + 1;
+    const year = parseInt(req.query.year) || new Date().getFullYear();
+
+    const totalBudget = await budgetRepository.getBudgetTotalByMonth(
+      userId,
+      month,
+      year,
+    );
+    const totalExpense = await transactionRepository.getExpenseTotalByMonth(
+      userId,
+      month,
+      year,
+    );
+    const monthlyBalance = totalBudget - totalExpense;
+
+    return baseResponse(res, true, 200, "Monthly balance computed", {
+      month,
+      year,
+      total_budget: totalBudget,
+      total_expense: totalExpense,
+      monthly_balance: monthlyBalance,
+    });
+  } catch (error) {
+    console.error("Error computing monthly balance:", error);
     return baseResponse(res, false, 500, "Internal server error", null);
   }
 };

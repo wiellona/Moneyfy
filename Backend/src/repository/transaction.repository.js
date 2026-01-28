@@ -32,7 +32,7 @@ const getTransactionById = async (transactionId) => {
      FROM transactions t
      LEFT JOIN categories c ON t.category_id = c.category_id
      WHERE t.transaction_id = $1`,
-    [transactionId]
+    [transactionId],
   );
   return result.rows[0];
 };
@@ -42,7 +42,7 @@ const getTransactionsByUserId = async (
   userId,
   timeframe = null,
   startDate = null,
-  endDate = null
+  endDate = null,
 ) => {
   let dateFilter = "TRUE";
   const params = [userId];
@@ -60,7 +60,7 @@ const getTransactionsByUserId = async (
      LEFT JOIN categories c ON t.category_id = c.category_id
      WHERE t.user_id = $1 AND ${dateFilter}
      ORDER BY t.date DESC`,
-    params
+    params,
   );
   return result.rows;
 };
@@ -71,7 +71,7 @@ const getTransactionsByType = async (
   type,
   timeframe = null,
   startDate = null,
-  endDate = null
+  endDate = null,
 ) => {
   let dateFilter = "TRUE";
   const params = [userId, type];
@@ -89,7 +89,7 @@ const getTransactionsByType = async (
      LEFT JOIN categories c ON t.category_id = c.category_id
      WHERE t.user_id = $1 AND t.transaction_type = $2 AND ${dateFilter}
      ORDER BY t.date DESC`,
-    params
+    params,
   );
   return result.rows;
 };
@@ -102,7 +102,7 @@ const createTransaction = async (
   date,
   note,
   transactionType,
-  goalId = null
+  goalId = null,
 ) => {
   try {
     const transactionId = uuidv4();
@@ -132,7 +132,7 @@ const createTransaction = async (
         goalId,
         now,
         now,
-      ]
+      ],
     );
 
     console.log("Transaction creation result:", result);
@@ -151,7 +151,7 @@ const updateTransaction = async (
   date,
   note,
   transactionType,
-  goalId = null
+  goalId = null,
 ) => {
   const now = new Date();
 
@@ -170,7 +170,7 @@ const updateTransaction = async (
       goalId,
       now,
       transactionId,
-    ]
+    ],
   );
 
   return result.rows[0];
@@ -180,7 +180,7 @@ const updateTransaction = async (
 const deleteTransaction = async (transactionId) => {
   const result = await query(
     "DELETE FROM transactions WHERE transaction_id = $1 RETURNING *",
-    [transactionId]
+    [transactionId],
   );
   return result.rows[0];
 };
@@ -219,7 +219,7 @@ const getTransactionSummary = async (userId, period = "month") => {
        SUM(CASE WHEN transaction_type = 'saving' THEN amount ELSE 0 END) as total_saving
      FROM transactions
      WHERE user_id = $1 AND ${dateFilter}`,
-    [userId]
+    [userId],
   );
 
   // Get previous period data
@@ -230,7 +230,7 @@ const getTransactionSummary = async (userId, period = "month") => {
        SUM(CASE WHEN transaction_type = 'saving' THEN amount ELSE 0 END) as total_saving
      FROM transactions
      WHERE user_id = $1 AND ${prevDateFilter}`,
-    [userId]
+    [userId],
   );
 
   const current = currentResult.rows[0];
@@ -248,15 +248,15 @@ const getTransactionSummary = async (userId, period = "month") => {
     total_saving: current.total_saving || 0,
     income_percentage_change: calculatePercentage(
       Number(current.total_income) || 0,
-      Number(prev.total_income) || 0
+      Number(prev.total_income) || 0,
     ),
     expense_percentage_change: calculatePercentage(
       Number(current.total_expense) || 0,
-      Number(prev.total_expense) || 0
+      Number(prev.total_expense) || 0,
     ),
     saving_percentage_change: calculatePercentage(
       Number(current.total_saving) || 0,
-      Number(prev.total_saving) || 0
+      Number(prev.total_saving) || 0,
     ),
   };
 };
@@ -280,7 +280,7 @@ const getTransactionsByMonth = async (userId, month, year, type = null) => {
      AND EXTRACT(YEAR FROM t.date) = $3
      ${typeFilter}
      ORDER BY t.date DESC`,
-    params
+    params,
   );
   return result.rows;
 };
@@ -303,7 +303,7 @@ const getIncomeVsExpenses = async (userId, year = new Date().getFullYear()) => {
         EXTRACT(YEAR FROM t.date) = $2
       GROUP BY m.month_number, month_name
       ORDER BY m.month_number ASC`,
-      [userId, year]
+      [userId, year],
     );
 
     return result.rows;
@@ -311,6 +311,19 @@ const getIncomeVsExpenses = async (userId, year = new Date().getFullYear()) => {
     console.error("Error getting income vs expenses:", error);
     throw error;
   }
+};
+
+const getExpenseTotalByMonth = async (userId, month, year) => {
+  const result = await query(
+    `SELECT COALESCE(SUM(amount), 0) AS total_expense
+       FROM transactions
+      WHERE user_id = $1
+        AND transaction_type = 'expense'
+        AND EXTRACT(MONTH FROM date) = $2
+        AND EXTRACT(YEAR FROM date) = $3`,
+    [userId, month, year],
+  );
+  return Number(result.rows[0].total_expense);
 };
 
 module.exports = {
@@ -324,4 +337,5 @@ module.exports = {
   getTransactionSummary,
   getTransactionsByMonth,
   getIncomeVsExpenses,
+  getExpenseTotalByMonth,
 };

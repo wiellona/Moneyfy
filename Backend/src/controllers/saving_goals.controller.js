@@ -1,5 +1,6 @@
 const savingGoalsRepository = require("../repository/saving_goals.repository");
 const baseResponse = require("../utils/baseResponse.util");
+const accountRepository = require("../repository/account.repository");
 
 exports.createSavingGoal = async (req, res) => {
   try {
@@ -16,7 +17,7 @@ exports.createSavingGoal = async (req, res) => {
         false,
         400,
         "All fields are required (user_id, title, target_amount, start_date, end_date)",
-        null
+        null,
       );
     }
 
@@ -30,7 +31,7 @@ exports.createSavingGoal = async (req, res) => {
         false,
         400,
         "Invalid date format. Use YYYY-MM-DD",
-        null
+        null,
       );
     }
 
@@ -40,7 +41,7 @@ exports.createSavingGoal = async (req, res) => {
         false,
         400,
         "End date must be after start date",
-        null
+        null,
       );
     }
 
@@ -52,7 +53,7 @@ exports.createSavingGoal = async (req, res) => {
       true,
       201,
       "Saving goal created successfully",
-      savingGoal
+      savingGoal,
     );
   } catch (error) {
     console.error("Error creating saving goal:", error);
@@ -68,16 +69,15 @@ exports.getSavingGoalsByUserId = async (req, res) => {
       return baseResponse(res, false, 400, "User ID is required", null);
     }
 
-    const savingGoals = await savingGoalsRepository.getSavingGoalsByUserId(
-      userId
-    );
+    const savingGoals =
+      await savingGoalsRepository.getSavingGoalsByUserId(userId);
 
     return baseResponse(
       res,
       true,
       200,
       "Saving goals retrieved successfully",
-      savingGoals
+      savingGoals,
     );
   } catch (error) {
     console.error("Error getting saving goals:", error);
@@ -104,7 +104,7 @@ exports.getSavingGoalById = async (req, res) => {
       true,
       200,
       "Saving goal retrieved successfully",
-      savingGoal
+      savingGoal,
     );
   } catch (error) {
     console.error("Error getting saving goal:", error);
@@ -138,7 +138,7 @@ exports.updateSavingGoal = async (req, res) => {
           false,
           400,
           "Invalid date format. Use YYYY-MM-DD",
-          null
+          null,
         );
       }
 
@@ -148,7 +148,7 @@ exports.updateSavingGoal = async (req, res) => {
           false,
           400,
           "End date must be after start date",
-          null
+          null,
         );
       }
     }
@@ -166,7 +166,7 @@ exports.updateSavingGoal = async (req, res) => {
 
     const updatedGoal = await savingGoalsRepository.updateSavingGoal(
       goalId,
-      updatedGoalData
+      updatedGoalData,
     );
 
     return baseResponse(
@@ -174,7 +174,7 @@ exports.updateSavingGoal = async (req, res) => {
       true,
       200,
       "Saving goal updated successfully",
-      updatedGoal
+      updatedGoal,
     );
   } catch (error) {
     console.error("Error updating saving goal:", error);
@@ -204,7 +204,7 @@ exports.deleteSavingGoal = async (req, res) => {
       true,
       200,
       "Saving goal deleted successfully",
-      deletedGoal
+      deletedGoal,
     );
   } catch (error) {
     console.error("Error deleting saving goal:", error);
@@ -235,7 +235,7 @@ exports.updateSavingGoalProgress = async (req, res) => {
     // Update the progress
     const updatedGoal = await savingGoalsRepository.updateSavingGoalProgress(
       goalId,
-      amount
+      amount,
     );
 
     return baseResponse(
@@ -243,10 +243,40 @@ exports.updateSavingGoalProgress = async (req, res) => {
       true,
       200,
       "Saving goal progress updated successfully",
-      updatedGoal
+      updatedGoal,
     );
   } catch (error) {
     console.error("Error updating saving goal progress:", error);
+    return baseResponse(res, false, 500, "Internal server error", null);
+  }
+};
+
+exports.claimSavingGoal = async (req, res) => {
+  try {
+    const goalId = req.params.goalId;
+    const goal = await savingGoalsRepository.getSavingGoalById(goalId);
+    if (!goal) {
+      return baseResponse(res, false, 404, "Saving goal not found", null);
+    }
+
+    await accountRepository.incrementTotalSavingsByUserId(
+      goal.user_id,
+      goal.current_amount || 0,
+    );
+
+    const updatedGoal = await savingGoalsRepository.updateSavingGoal(goalId, {
+      current_amount: 0,
+    });
+
+    return baseResponse(
+      res,
+      true,
+      200,
+      "Savings claimed to total_savings",
+      updatedGoal,
+    );
+  } catch (error) {
+    console.error("Error claiming saving goal:", error);
     return baseResponse(res, false, 500, "Internal server error", null);
   }
 };

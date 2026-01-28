@@ -25,7 +25,7 @@ const getBudgetsByTimePeriod = async (userId, timeframe) => {
      LEFT JOIN categories c ON b.category_id = c.category_id
      WHERE b.user_id = $1 AND ${dateFilter}
      ORDER BY b.start_date DESC`,
-    [userId]
+    [userId],
   );
 
   return result.rows;
@@ -44,7 +44,7 @@ const getBudgetsByDateRange = async (userId, startDate, endDate) => {
        (b.start_date <= $2 AND b.end_date >= $3)
      )
      ORDER BY b.start_date DESC`,
-    [userId, startDate, endDate]
+    [userId, startDate, endDate],
   );
 
   return result.rows;
@@ -64,7 +64,7 @@ const getBudgetsByMonth = async (userId, month, year) => {
         b.end_date >= (make_date($3, $2, 1) + INTERVAL '1 month - 1 day')::date)
      )
      ORDER BY b.start_date DESC`,
-    [userId, month, year]
+    [userId, month, year],
   );
 
   return result.rows;
@@ -88,7 +88,7 @@ const getBudgetById = async (budgetId) => {
      FROM budgets b
      LEFT JOIN categories c ON b.category_id = c.category_id
      WHERE b.budget_id = $1`,
-    [budgetId]
+    [budgetId],
   );
   return result.rows[0];
 };
@@ -101,7 +101,7 @@ const getBudgetsByUserId = async (userId) => {
      LEFT JOIN categories c ON b.category_id = c.category_id
      WHERE b.user_id = $1
      ORDER BY b.start_date DESC`,
-    [userId]
+    [userId],
   );
   return result.rows;
 };
@@ -115,7 +115,7 @@ const getActiveBudgetsByUserId = async (userId) => {
      WHERE b.user_id = $1 
      AND CURRENT_DATE BETWEEN b.start_date AND b.end_date
      ORDER BY b.end_date ASC`,
-    [userId]
+    [userId],
   );
   return result.rows;
 };
@@ -138,7 +138,7 @@ const getBudgetProgress = async (budgetId) => {
         t.transaction_type = 'expense'
      WHERE b.budget_id = $1
      GROUP BY b.budget_id, b.amount`,
-    [budgetId]
+    [budgetId],
   );
   return result.rows[0];
 };
@@ -153,7 +153,7 @@ const createBudget = async (userId, categoryId, amount, startDate, endDate) => {
      (budget_id, user_id, category_id, amount, start_date, end_date, created_at, updated_at)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      RETURNING *`,
-    [budgetId, userId, categoryId, amount, startDate, endDate, now, now]
+    [budgetId, userId, categoryId, amount, startDate, endDate, now, now],
   );
 
   return result.rows[0];
@@ -165,7 +165,7 @@ const updateBudget = async (
   categoryId,
   amount,
   startDate,
-  endDate
+  endDate,
 ) => {
   const now = new Date();
 
@@ -174,7 +174,7 @@ const updateBudget = async (
      SET category_id = $1, amount = $2, start_date = $3, end_date = $4, updated_at = $5
      WHERE budget_id = $6
      RETURNING *`,
-    [categoryId, amount, startDate, endDate, now, budgetId]
+    [categoryId, amount, startDate, endDate, now, budgetId],
   );
 
   return result.rows[0];
@@ -186,7 +186,7 @@ const getBudgetsByCategory = async (
   categoryId,
   timeframe = null,
   startDate = null,
-  endDate = null
+  endDate = null,
 ) => {
   let queryText;
   let params;
@@ -240,7 +240,7 @@ const getBudgetsByCategory = async (
 const deleteBudget = async (budgetId) => {
   const result = await query(
     "DELETE FROM budgets WHERE budget_id = $1 RETURNING *",
-    [budgetId]
+    [budgetId],
   );
   return result.rows[0];
 };
@@ -287,7 +287,7 @@ const getBudgetProgressByUserId = async (userId, timeframe) => {
      WHERE b.user_id = $1 ${dateFilter}
      GROUP BY b.budget_id, b.category_id, b.amount, c.name, c.type, b.start_date, b.end_date
      ORDER BY b.start_date DESC`,
-    [userId]
+    [userId],
   );
   return result.rows;
 };
@@ -335,13 +335,25 @@ const getBudgetProgressByUserIdAndMonth = async (userId, month, year) => {
        )
        GROUP BY b.budget_id, b.category_id, b.amount, c.name, c.type, c.icon_url, b.start_date, b.end_date
        ORDER BY b.start_date DESC`,
-      [userId, month, year, startOfMonth, endOfMonth]
+      [userId, month, year, startOfMonth, endOfMonth],
     );
     return result.rows;
   } catch (error) {
     console.error("Error in getBudgetProgressByUserIdAndMonth:", error);
     throw error;
   }
+};
+
+const getBudgetTotalByMonth = async (userId, month, year) => {
+  const result = await query(
+    `SELECT COALESCE(SUM(amount), 0) AS total_budget
+       FROM budgets
+      WHERE user_id = $1
+        AND EXTRACT(MONTH FROM start_date) = $2
+        AND EXTRACT(YEAR FROM start_date) = $3`,
+    [userId, month, year],
+  );
+  return Number(result.rows[0].total_budget);
 };
 
 module.exports = {
@@ -359,4 +371,5 @@ module.exports = {
   getBudgetsByCategory,
   getBudgetProgressByUserId,
   getBudgetProgressByUserIdAndMonth,
+  getBudgetTotalByMonth,
 };

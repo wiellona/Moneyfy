@@ -20,4 +20,7 @@ router.delete("/:goalId", controller.deleteSavingGoal);
 // Update saving goal progress
 router.patch("/:goalId/progress", controller.updateSavingGoalProgress);
 
+// Claim a saving goal
+router.post("/:goalId/claim", controller.claimSavingGoal);
+
 module.exports = router;
